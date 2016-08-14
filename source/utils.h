@@ -71,9 +71,10 @@
  *
  * @return  real time passed since some arbitrary starting point.
  */
+// TODO: NOW IT'S IN SECONDS!
 inline
 ullong sysTimer() {
-    return time(NULL)/100000;//PAPI_get_real_usec();
+    return time(NULL);//PAPI_get_real_usec();
 }
 /*!
  * Get number of significant digits of a number.

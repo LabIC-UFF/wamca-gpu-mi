@@ -315,9 +315,9 @@ public:
    /*!
     * Friend classes
     */
-   friend class  MLSolver;
-   friend class  MLTask;
-   friend class  MLGPUTask;
+   //friend class  MLSolver;
+   //friend class  MLTask;
+   //friend class  MLGPUTask;
    friend class  MLKernelSharedSize;
    friend struct MLKernelData;
 };

@@ -135,10 +135,11 @@ MLKernel::init(bool solCreate)
     // Kernel stream
     gpuStreamCreate(&stream);
 
-#ifdef GPU_PROFILE
-    // Set stream name for NVIDIA Profiler
-    nvtxNameCuStreamA(stream,name);
-#endif
+// TODO: SET PROFILER TAGS!
+//#ifdef GPU_PROFILE
+//    // Set stream name for NVIDIA Profiler
+//    nvtxNameCuStreamA(stream,name);
+//#endif
 
     // Kernel events
     gpuEventCreate(&evtStart);

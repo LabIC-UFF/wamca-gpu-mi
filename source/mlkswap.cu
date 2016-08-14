@@ -556,14 +556,14 @@ MLKernelSwap::defineKernelGrid()
 void
 MLKernelSwap::launchKernel()
 {
-    l4printf("Calling kernel %s\n",name);
+    lprintf("Calling kernel %s\n",name);
 
     // Update kernel calls counter
     callCount++;
     // Kernel in execution
     flagExec = true;
 
-    l4printf("Kernel %s\tgrid(%d,%d,%d)\tblck(%d,%d,%d)\tshared=%u (%u KB)\tsize=%u\n",
+    lprintf("Kernel %s\tgrid(%d,%d,%d)\tblck(%d,%d,%d)\tshared=%u (%u KB)\tsize=%u\n",
                     name,
                     grid.x,grid.y,grid.z,
                     block.x,block.y,block.z,
@@ -572,6 +572,7 @@ MLKernelSwap::launchKernel()
 
     // Calls kernel
     kernelSwap<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
+    gpuDeviceSynchronize();
 }
 
 void

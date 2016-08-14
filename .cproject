@@ -57,8 +57,6 @@
 								<option id="nvcc.linker.option.libs.294352782" name="Libraries (-l)" superClass="nvcc.linker.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="m"/>
 									<listOptionValue builtIn="false" value="pfm"/>
-									<listOptionValue builtIn="false" value="papi"/>
-									<listOptionValue builtIn="false" value="nvToolsExt"/>
 								</option>
 								<option id="nvcc.linker.option.paths.2052170866" name="Library search path (-L)" superClass="nvcc.linker.option.paths" valueType="libPaths">
 									<listOptionValue builtIn="false" value="../../lib"/>

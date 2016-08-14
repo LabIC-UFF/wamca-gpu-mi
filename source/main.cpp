@@ -15,9 +15,49 @@
 
 using namespace std;
 
+/*!
+ * Initialize environment.
+ */
+void
+envInit()
+{
+    int     error;
+
+    // Initializes log system
+    logInit();
+
+    cudaDeviceProp  prop;
+    int             count;
+
+    // Set thread GPU
+    cudaSetDevice(0);
+
+    // Detect CUDA driver and GPU devices
+    switch(cudaGetDeviceCount(&count)) {
+    case cudaSuccess:
+        for(int d;d < count;d++) {
+            if(cudaGetDeviceProperties(&prop,d) == cudaSuccess) {
+                if(prop.major < 2)
+                    WARNING("Device '%s' is not suitable to this application. Device capability %d.%d < 2.0\n",
+                            prop.name,prop.major,prop.minor);
+            }
+            lprintf("GPU ok!\n");
+        }
+        break;
+    case cudaErrorNoDevice:
+        WARNING("No GPU Devices detected.");
+        break;
+    case cudaErrorInsufficientDriver:
+        WARNING("No CUDA driver installed.");
+        break;
+    default:
+        EXCEPTION("Unknown error detecting GPU devices.");
+    }
+}
 
 int main(int argc, char **argv)
 {
+	envInit();
 
 	bool costTour = false;
 	bool distRound = false;
@@ -27,7 +67,8 @@ int main(int argc, char **argv)
 	MLProblem problem(costTour, distRound, coordShift);
 	problem.load(instance_path.c_str());
 
-	WAMCAExperiment exper(problem);
+	int seed = 0; // 0: random
+	WAMCAExperiment exper(problem, seed);
 
 	exper.runExperiment();
 

@@ -21,11 +21,13 @@ class WAMCAExperiment
 {
 public:
 
-	WAMCAExperiment(MLProblem& _problem) :
+	WAMCAExperiment(MLProblem& _problem, int seed) :
 		problem(_problem)
 	{
+		generalInit(0, seed); // SEED
+	    kernelInit();
+	    initDevice();
 	}
-
 
 	MLProblem problem;
 
@@ -54,56 +56,18 @@ public:
 	ullong          timeIdle;                   ///<< Time CPU was idle
 
 
-
-	/*!
-	 * Initialize environment.
-	 */
-	void
-	envInit()
+	void generalInit(int id = 0, int rngSeed = 0)
 	{
-	    int     error;
+	    lprintf("GPU%u\n",id);
 
-	    // Initializes log system
-	    logInit();
-
-	    cudaDeviceProp  prop;
-	    int             count;
-
-	    // Set thread GPU
-	    cudaSetDevice(0);
-
-	    // Detect CUDA driver and GPU devices
-	    switch(cudaGetDeviceCount(&count)) {
-	    case cudaSuccess:
-	        for(int d;d < count;d++) {
-	            if(cudaGetDeviceProperties(&prop,d) == cudaSuccess) {
-	                if(prop.major < 2)
-	                    WARNING("Device '%s' is not suitable to this application. Device capability %d.%d < 2.0\n",
-	                            prop.name,prop.major,prop.minor);
-	            }
-	        }
-	        break;
-	    case cudaErrorNoDevice:
-	        WARNING("No GPU Devices detected.");
-	        break;
-	    case cudaErrorInsufficientDriver:
-	        WARNING("No CUDA driver installed.");
-	        break;
-	    default:
-	        EXCEPTION("Unknown error detecting GPU devices.");
-	    }
-	}
-
-
-
-	void generalInit(int id = 0, int rngSeed = -1)
-	{
-	    l4printf("GPU%u\n",id);
-
-	    if(rngSeed != -1)
+	    if(rngSeed != 0) {
 	        rng.seed(rngSeed);
-	    else
+	        lprintf("set seed %d\n", rngSeed);
+	    }
+	    else {
 	        rng.seed(uint(sysTimer()) + id + 1);
+	        lprintf("set random seed!\n");
+	    }
 
 	    gpuId = id;
 	    gpuMemFree = 0;
@@ -133,7 +97,7 @@ public:
 	    MLSolution *sol;
 	    size_t      free,
 	                size;
-	    bool        flag;
+	    //bool        flag;  TODO: Pra que serve??? entender.
 
 	    l4printf("GPU%u\n",gpuId);
 
@@ -149,13 +113,13 @@ public:
 	    l4printf("GPU%u, initializing %d kernels\n",gpuId,kernelCount);
 	    for(int i=0;i < kernelCount;i++) {
 	        l4printf("GPU%u, initializing kernel %s\n",gpuId,kernels[i]->name);
-	        kernels[i]->init(flag);
+	        kernels[i]->init(true);//(flag);
 	    }
 	}
 
 	void kernelInit()
 	{
-	    l4printf("GPU%u: kernelAdd, count=%u\n",gpuId,kernelCount);
+	    l4printf("GPU%u: kernelAdd, count=%u\n", gpuId, kernelCount);
 
 	    for(int i=0;i < MLP_MAX_NEIGHBOR;i++) {
 	        if(kernels[i])
@@ -192,6 +156,7 @@ public:
 
 	void runExperiment()
 	{
+		lprintf("BEGIN WAMCA 2016 Experiments\n");
 
 	    MLKernel    *kernel;
 	    MLSolution  *solVnd;
@@ -202,27 +167,32 @@ public:
 	                 movesCost;
 	    char         buffer[128];
 
-	    MLSolution* solDevice = new MLSolution(problem);
-
 	    lprintf("RAND_SEED\t: %u\n",rng.getSeed());
 
 	    timeAvg = 0;
 	    for(uint m=0;m < 10; m++) {
 
-	        l4printf("***\n* Solution #%u\n***\n",m + 1);
+	        lprintf("***\n* Solution #%u\n***\n",m + 1);
 
+		    MLSolution* solDevice = new MLSolution(problem);
 	        solDevice->random(rng,0.50);
 
-	        //solDevice->adsUpdate();
+	        lprintf("random solution created!\n");
 
 	        for(int k=MLMI_SWAP;k <= MLMI_OROPT3;k++) {
 	            kernel = kernels[k];
+	        	lprintf("initializing kernel %d with %p\n", k, kernel);
 
 	            kernel->setSolution(solDevice);
+	            lprintf("kernel solution set!\n");
 	            kernel->sendSolution();
+	            lprintf("kernel solution sent!\n");
+	            kernel->defineKernelGrid(); // TODO: precisa??
+	            lprintf("defined kernel grid!\n");
 	            kernel->launchKernel();
 	            kernel->recvResult();
 	            kernel->sync();
+	            lprintf("kernel result received!\n");
 
 	            l4printf("time = %llu us = %llu ms\n",time,time / 1000);
 
