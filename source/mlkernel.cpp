@@ -59,7 +59,7 @@ MLKernel::MLKernel(MLProblem& _problem, int kid, uint ktag) :
     imprvCount = 0;
     timeMove = 0;
 
-    reset();
+    reset(); // adsData = NULL, etc...
 }
 
 MLKernel::~MLKernel()
@@ -203,13 +203,13 @@ MLKernel::init(bool solCreate)
     // Move merge graph
     graphMerge.resize(solSize);
 
-#if LOG_LEVEL > 4
+#if 1 //LOG_LEVEL > 4
     lprintf("<<< kernel %s\n",name);
     lprintf("grid(%d,%d,%d)\tblck(%d,%d,%d)\tshared=%u (%u KB)\n",
                     grid.x,grid.y,grid.z,
                     block.x,block.y,block.z,
                     shared,shared / 1024);
-    lprintf("GPU Id\t\t: %u\n",gpuTask.gpuId);
+    lprintf("GPU Id\t\t: %u\n", gpuId);
     lprintf("Kernel Id\t: %u\n",id);
     lprintf("Kernel Name\t: %s\n",name);
     lprintf("solSize\t\t: %6u elems\n",solSize);
@@ -218,7 +218,7 @@ MLKernel::init(bool solCreate)
     lprintf("adsSolution\t: %6u elems\t%6lu bytes\t%p\n",adsRowElems,adsRowElems * sizeof(uint),ADS_SOLUTION_PTR(adsData,adsRowElems));
     lprintf("adsTime\t\t: %6u elems\t%6lu bytes\t%p\n",adsRowElems,adsRowElems * sizeof(uint),ADS_TIME_PTR(adsData,adsRowElems));
     lprintf("adsCost\t\t: %6u elems\t%6lu bytes\t%p\n",adsRowElems * solSize,adsRowElems * sizeof(uint) * solSize,ADS_COST_PTR(adsData,adsRowElems));
-    lprintf("moveBuffer\t: %6u elems\t%6lu bytes\t%p\n",solSize,solSize * sizeof(ullong),moveBuffer);
+    //lprintf("moveBuffer\t: %6u elems\t%6lu bytes\t%p\n",solSize,solSize * sizeof(ullong),moveBuffer);
     lprintf(">>>> kernel %s\n",name);
 #endif
 }

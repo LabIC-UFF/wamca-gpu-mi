@@ -33,6 +33,7 @@
 // ################################################################################# //
 
 #ifdef  MLP_GPU_ADS
+//#if 0
 
 /*
  * GPU Auxiliary Data Structures (ADS) code
@@ -569,6 +570,7 @@ MLKernelSwap::launchKernel()
                     block.x,block.y,block.z,
                     shared,shared / 1024,
                     solSize);
+    lprintf("adsData=%p\n",adsData);
 
     // Calls kernel
     kernelSwap<<<grid,block,shared,stream>>>(adsData,moveData,solSize);

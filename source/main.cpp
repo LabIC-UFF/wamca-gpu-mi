@@ -59,7 +59,7 @@ int main(int argc, char **argv)
 {
 	envInit();
 
-	bool costTour = false;
+	bool costTour = true;
 	bool distRound = false;
 	bool coordShift = false;
 	string instance_path = "./instances/01_berlin52.tsp";
@@ -67,10 +67,11 @@ int main(int argc, char **argv)
 	MLProblem problem(costTour, distRound, coordShift);
 	problem.load(instance_path.c_str());
 
-	int seed = 0; // 0: random
+
+	int seed = 100; // 0: random
 	WAMCAExperiment exper(problem, seed);
 
-	exper.runExperiment();
+	exper.runWAMCA2016();
 
     l4printf(">>>> BUILT AT %s %s\n",__DATE__,__TIME__);
 

@@ -154,7 +154,7 @@ public:
 
 
 
-	void runExperiment()
+	void runWAMCA2016()
 	{
 		lprintf("BEGIN WAMCA 2016 Experiments\n");
 
@@ -178,6 +178,7 @@ public:
 	        solDevice->random(rng,0.50);
 
 	        lprintf("random solution created!\n");
+	        solDevice->show(std::cout);
 
 	        for(int k=MLMI_SWAP;k <= MLMI_OROPT3;k++) {
 	            kernel = kernels[k];
@@ -189,6 +190,7 @@ public:
 	            lprintf("kernel solution sent!\n");
 	            kernel->defineKernelGrid(); // TODO: precisa??
 	            lprintf("defined kernel grid!\n");
+	            lprintf("launching kernel k=%d %s!\n",k,kernel->name);
 	            kernel->launchKernel();
 	            kernel->recvResult();
 	            kernel->sync();
