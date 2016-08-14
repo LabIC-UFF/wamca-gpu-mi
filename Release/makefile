@@ -69,7 +69,7 @@ clean:
 	-@echo ' '
 
 post-build:
-	-rsync -arv /home/eyder/workspace/cuda/wamca2016/Release sol:/home/eyder/workspace/cuda/wamca2016/
+	-#rsync -arv /home/eyder/workspace/cuda/wamca2016/Release sol:/home/eyder/workspace/cuda/wamca2016/
 	-@echo ' '
 
 .PHONY: all clean dependents
