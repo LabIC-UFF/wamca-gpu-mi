@@ -29,7 +29,7 @@ public:
     /*!
      * Create a MLSwapKernelTask instance.
      */
-    MLKernel2Opt(MLGPUTask &parent) : MLKernel(parent,MLMI_2OPT) {
+    MLKernel2Opt(MLProblem &_problem) : MLKernel(_problem,MLMI_2OPT) {
     }
     /*!
      * Define kernel launching grid

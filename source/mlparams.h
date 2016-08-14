@@ -20,6 +20,7 @@
 // ##                                                                            ## //
 // ################################################################################ //
 
+// TODO: MOVED TO "consts.h"
 #define OFM_LEN_APP             15    ///< Max length for app name
 #define OFM_LEN_LIB             16    ///< Max length for lib version
 #define OFM_LEN_BUILD           63    ///< Max length for build time

@@ -15,8 +15,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_profiler_api.h>
-#include <cuda/gpu_helper.h>
-#include <cuda/gpu_string.h>
+#include "cuda/gpu_helper.h"
+#include "cuda/gpu_string.h"
 #include <nvToolsExt.h>
 #include <nvToolsExtCuda.h>
 

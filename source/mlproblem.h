@@ -10,7 +10,9 @@
 
 #include <limits.h>
 #include "types.h"
-#include "mlparams.h"
+
+//#include "mlparams.h"
+#include "consts.h"
 
 
 #ifndef __mlproblem_h
@@ -59,7 +61,10 @@ typedef MLClientData  *PMLClientData;
 class MLProblem
 {
 public:
-    MLParams       &params;                 ///< MLP parameters
+    //MLParams       &params;                 ///< MLP parameters
+	bool          	costTour;             ///< Cost calculation method (tour/path)
+	bool          	distRound;            ///< Sum 0.5 to euclidean distance calculation?
+	bool          	coordShift;           ///< Shift clients coordinates if necessary
 
     char            filename[OFM_LEN_PATH]; ///< Instance filename
     char            name[OFM_LEN_NAME];     ///< Instance filename
@@ -86,7 +91,10 @@ public:
     /*!
      * Create an empty OFProblem instance.
      */
-    MLProblem(MLParams &pars) : params(pars) {
+    MLProblem(bool _costTour, bool _distRound, bool _coordShift):
+    	costTour(_costTour), distRound(_distRound), coordShift(_coordShift)  {
+    	//(MLParams &pars) : params(pars) {
+
         clients = NULL;
         size = 0;
         timeLoad = 0;

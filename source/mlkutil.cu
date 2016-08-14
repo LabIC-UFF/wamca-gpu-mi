@@ -12,7 +12,11 @@
 #include <stdarg.h>
 #include "gpu.h"
 #include "mlads.h"
-#include "mlgputask.h"
+#include "log.h"
+
+
+#include "mlkernel.h" // IGOR add
+//#include "mlgputask.h"
 
 
 
@@ -395,8 +399,10 @@ MLKernel::launchShowDataKernel(uint width, uint max)
 {
     gpuEventRecord(evtStart,stream);
 
+    int gpuId = 0; // TODO: fix
+
     kernelShowData<<<1,1,0,stream>>>(
-                    gpuTask.gpuId,
+                    gpuId,
                     id,
                     adsData,
                     width,
@@ -410,7 +416,6 @@ MLKernel::launchShowDataKernel(uint width, uint max)
 void
 MLKernel::launchWeightKernel()
 {
-    MLProblem &problem = gpuTask.problem;
     int       *weights,
               *row,
                count,

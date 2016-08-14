@@ -65,7 +65,7 @@ MLProblem::allocData(uint siz)
     free();
 
     // If tour, one client (depot) added to end
-    size = siz + int(params.costTour);
+    size = siz + int(costTour);
     clients = new MLClientData[size];
 
     for(i=0;i < size;i++) {
@@ -85,7 +85,7 @@ MLProblem::load(const char *fname)
 
     timeLoad = sysTimer();
 
-    dr = params.distRound ? 0.5F : 0.0F;
+    dr = distRound ? 0.5F : 0.0F;
     l4printf("Euclidean distance round: %0.2f\n",dr);
 
     // Load TSPLIB file
@@ -134,7 +134,7 @@ MLProblem::load(const char *fname)
          * only non negative numbers.
          * This should not affect client distances.
          */
-        if(params.coordShift) {
+        if(coordShift) {
             shiftX = (xmin < 0) ? -xmin : 0;
             shiftY = (ymin < 0) ? -ymin : 0;
 
@@ -166,7 +166,7 @@ MLProblem::load(const char *fname)
         }
     }
     else
-        EXCEPTION("Error opening instance file: %s",fname);
+        EXCEPTION("Error opening instance file: '%s'",fname);
 
 #if 0
 

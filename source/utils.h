@@ -13,7 +13,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include <papi/papi.h>
+//#include <papi/papi.h>
 #include "types.h"
 
 /******************************************************************************************
@@ -73,7 +73,7 @@
  */
 inline
 ullong sysTimer() {
-    return PAPI_get_real_usec();
+    return time(NULL)/100000;//PAPI_get_real_usec();
 }
 /*!
  * Get number of significant digits of a number.

@@ -16,7 +16,7 @@
 #include "mlsolution.h"
 #include "mlads.h"
 #include "graph.hpp"
-
+#include "utils.h"
 
 // ################################################################################ //
 // ##                                                                            ## //
@@ -57,7 +57,7 @@
 /*!
  * Incomplete classes
  */
-class MLGPUTask;
+//class MLGPUTask;
 class MLKernel;
 class MLSolution;
 
@@ -80,8 +80,9 @@ typedef Graph<MLMove64 *>   MLMoveGraph;
 
 class MLKernel
 {
-protected:
-    MLGPUTask      &gpuTask;                        ///< GPU task related to this kernel
+//protected:
+public:
+//    MLGPUTask      &gpuTask;                        ///< GPU task related to this kernel
     MLProblem      &problem;                        ///< Instance problem
 
     int             id;                             ///< Kernel id
@@ -134,7 +135,8 @@ public:
     /*!
      * Create a MLKernelTask instance.
      */
-    MLKernel(MLGPUTask &parent, int kid, uint ktag = 0);
+    //MLKernel(MLGPUTask &parent, int kid, uint ktag = 0);
+    MLKernel(MLProblem& _problem, int kid,  uint ktag = 0);
     /*!
      * Destroy a MLKernelTask instance.
      */
@@ -185,13 +187,7 @@ public:
     */
    void
    launchShowDistKernel();
-   /*!
-    * Get GPU task manager
-    */
-   MLGPUTask *
-   task() {
-       return &gpuTask;
-   }
+
    /*!
     * Reset kernel calls counter.
     */

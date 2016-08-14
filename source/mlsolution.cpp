@@ -103,9 +103,10 @@ MLSolution::idGen = 0;
 
 MLSolution::MLSolution(MLProblem &prob, int flags) : problem(prob)
 {
-    if(problem.params.pinnedAlloc)
-        adsFlags = flags;
-    else
+	// TODO: verificar com Eyder!!
+    //if(problem.params.pinnedAlloc)
+    //    adsFlags = flags;
+    //else
         adsFlags = cudaHostAllocPaged;
 
     init();
@@ -189,7 +190,7 @@ MLSolution::free()
 const char *
 MLSolution::costTypeName()
 {
-    return costTypeNames[problem.params.costTour];
+    return costTypeNames[problem.costTour];
 }
 
 ulong
@@ -304,7 +305,7 @@ MLSolution::strCost()
     else
         ss << "oo";
 
-    if(problem.params.costTour)
+    if(problem.costTour)
         ss << " (TOUR)";
     else
         ss << " (PATH)";
@@ -429,8 +430,8 @@ MLSolution::ldsUpdate()
     adsData->s.rowElems = adsRowElems;
     adsData->s.solElems = problem.size;
     adsData->s.solCost  = cost;
-    adsData->s.tour     = problem.params.costTour;
-    adsData->s.round    = problem.params.distRound;
+    adsData->s.tour     = problem.costTour;
+    adsData->s.round    = problem.distRound;
 
     adsCoords   = ADS_COORD_PTR(adsData);
     adsSolution = ADS_SOLUTION_PTR(adsData,adsRowElems);
@@ -623,7 +624,7 @@ MLSolution::checkCost(const char *prompt)
 	for(i=1;i < clientCount - 1;i++)
 	    ids[ clients[i] ]++;
 
-	if(clients[0] || (problem.params.costTour && clients[clientCount - 1]))
+	if(clients[0] || (problem.costTour && clients[clientCount - 1]))
 	    error = true;
 	else {
         for(i=1;i < clientCount - 1;i++) {
@@ -709,7 +710,7 @@ MLSolution::load(istream &is)
     if(v != problem.size) {
         bool error;
 
-        if(problem.params.costTour)
+        if(problem.costTour)
             error = (problem.size - 1 != v);
         else
             error = (problem.size + 1 != v);
@@ -762,7 +763,7 @@ MLSolution::random(MTRandom &rng, float alpha)
     clCands = clData + 1;
     // number of remaining candidates
     // if TOUR, ignore last one (depot again)
-    clCount = problem.size - 1 - problem.params.costTour;
+    clCount = problem.size - 1 - problem.costTour;
 
     // clear solution instance
     clear();
@@ -851,7 +852,7 @@ MLSolution::random(MTRandom &rng, float alpha)
     }
 
     // If TOUR, force depot as last client
-    if(problem.params.costTour) {
+    if(problem.costTour) {
         // add first client as last client of solution
         clCurr = clData[problem.size - 1];
         add(clCurr);
@@ -870,13 +871,13 @@ MLSolution::sample()
     int     route[] = { 0, 5, 1, 6, 3, 2, 4 },
             rsize = sizeof(route) / sizeof(*route);
 
-    if(problem.size != 7 + problem.params.costTour)
+    if(problem.size != 7 + problem.costTour)
         EXCEPTION("Invalid instance %s: trying to create SAMPLE instance: \n",problem.filename);
 
     clear();
     for(uint j=0;j < rsize;j++)
         add(route[j]);
-    if(problem.params.costTour)
+    if(problem.costTour)
         add(route[0]);
     update();
 }
@@ -888,10 +889,10 @@ MLSolution::sequence()
     ushort  i;
 
     clear();
-    size = problem.size - problem.params.costTour;
+    size = problem.size - problem.costTour;
     for(i=0;i < size;i++)
         add(i);
-    if(problem.params.costTour)
+    if(problem.costTour)
         add(ushort(0));
     update();
 }

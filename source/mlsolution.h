@@ -422,7 +422,7 @@ public:
      * Friend classes
      */
     friend class MLProblem;
-    friend class MLGPUTask;
+    //friend class MLGPUTask;
 };
 
 // std::ostream &operator<<(std::ostream &os, MLSolution const &s);

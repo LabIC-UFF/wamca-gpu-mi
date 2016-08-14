@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "log.h"
-#include "mlgputask.h"
+//#include "mlgputask.h"
 #include "mlkernel.h"
 #include "mlsolution.h"
 
@@ -47,8 +47,8 @@ using namespace std;
 // ##                                                                            ## //
 // ################################################################################ //
 
-MLKernel::MLKernel(MLGPUTask &task, int kid, uint ktag) :
-                gpuTask(task), problem(task.problem)
+MLKernel::MLKernel(MLProblem& _problem, int kid, uint ktag) :
+                problem(_problem)
 {
     id   = kid;
     tag  = ktag;
@@ -109,7 +109,9 @@ MLKernel::init(bool solCreate)
     size_t  free,
             size;
 
-    l4printf("Kernel %d: %s\n",gpuTask.gpuId,name);
+    int gpuId = 0; // TODO: fix
+
+    l4printf("Kernel %d: %s\n",gpuId,name);
 
     // Kernel solution
     //solBase = new MLSolution(problem,cudaHostAllocDefault);
@@ -168,10 +170,10 @@ MLKernel::init(bool solCreate)
     adsRowElems  = solSize;
 #endif
 
-    if(problem.params.gpuAds)
+    //if(problem.params.gpuAds)
         adsDataSize = ADS_INFO_SIZE + (solSize + 3) * adsRowElems * sizeof(uint);
-    else
-        adsDataSize = ADS_INFO_SIZE +            3  * adsRowElems * sizeof(uint);
+    //else
+    //    adsDataSize = ADS_INFO_SIZE +            3  * adsRowElems * sizeof(uint);
 
     gpuMalloc(&adsData,adsDataSize);
 
@@ -192,7 +194,7 @@ MLKernel::init(bool solCreate)
     gpuMalloc(&moveData,moveDataSize);
 
     transBufferSize = moveDataSize;
-    gpuHostMalloc(&transBuffer.p_void,transBufferSize,gpuTask.params.allocFlags);
+    gpuHostMalloc(&transBuffer.p_void,transBufferSize,0);//???gpuTask.params.allocFlags); TODO: fix
 
     // Define kernel grid
     defineKernelGrid();
@@ -223,7 +225,8 @@ MLKernel::init(bool solCreate)
 void
 MLKernel::term()
 {
-    l4printf("GPU%u Kernel %d: %s\n",gpuTask.gpuId,id,name);
+	int gpuId = 0; // TODO: fix
+    l4printf("GPU%u Kernel %d: %s\n",gpuId,id,name);
 
     gpuStreamDestroy(stream);
     gpuEventDestroy(evtStart);
@@ -232,7 +235,7 @@ MLKernel::term()
     gpuFree(adsData);
     gpuFree(moveData);
 
-    gpuHostFree(transBuffer.p_void,gpuTask.params.allocFlags);
+    gpuHostFree(transBuffer.p_void,0);//????gpuTask.params.allocFlags); TODO: fix
 
     if(solDestroy && solution)
         delete solution;

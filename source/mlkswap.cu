@@ -13,7 +13,7 @@
 #include "log.h"
 #include "utils.h"
 #include "gpu.h"
-#include "mlgputask.h"
+//#include "mlgputask.h"
 #include "mlkswap.h"
 
 
@@ -512,7 +512,7 @@ MLKernelSwap::defineKernelGrid()
      * Compute grid
      */
     grid.x  = 1;
-    grid.y  = solSize - problem.params.costTour - 3;
+    grid.y  = solSize - problem.costTour - 3;
     grid.z  = 1;
 
 #else
@@ -532,8 +532,8 @@ MLKernelSwap::defineKernelGrid()
     if(gpuOccupancyMaxPotentialBlockSizeVariableSMem(&gsize,&bsize,kernelSwap,
                         MLKernelSharedSize(this),solSize) == cudaSuccess)
         block.x = bsize;
-    else
-        block.x = problem.params.blockSize ? problem.params.blockSize : solSize;
+    //else
+    //    block.x = problem.params.blockSize ? problem.params.blockSize : solSize;
     block.y = 1;
     block.z = 1;
     /*
@@ -541,9 +541,9 @@ MLKernelSwap::defineKernelGrid()
      */
     moveElems = grid.y;
 
-    if(problem.params.maxMerge)
-        maxMerge = problem.params.maxMerge;
-    else
+    //if(problem.params.maxMerge)
+    //    maxMerge = problem.params.maxMerge;
+    //else
         maxMerge = moveElems;
 
     l4printf("Kernel %s\tgrid(%d,%d,%d)\tblck(%d,%d,%d)\tshared=%u (%u KB)\n",
