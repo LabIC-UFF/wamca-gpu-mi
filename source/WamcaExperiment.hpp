@@ -30,7 +30,7 @@ public:
 	    initDevice();
 	}
 
-	MLProblem problem;
+	MLProblem& problem;
 
 	MTRandom         rng;               ///< Random number generator
 
@@ -123,8 +123,10 @@ public:
 	    l4printf("GPU%u: kernelAdd, count=%u\n", gpuId, kernelCount);
 
 	    for(int i=0;i < MLP_MAX_NEIGHBOR;i++) {
-	        if(kernels[i])
+	        if(kernels[i]) {
+	        	printf("ERRO!\n");
 	            delete kernels[i];
+	        }
 	        kernels[i] = NULL;
 	    }
 
@@ -183,8 +185,8 @@ public:
 	        solDevice->show(std::cout);
 
 	        //for(int k=MLMI_SWAP;k <= MLMI_OROPT3;k++) {
-	        //for(int k=0;k < kernelCount;k++) {
-	        for(int k=0; k <= 0;k++){
+	        for(int k=0;k < kernelCount;k++) {
+	        //for(int k=0; k <= 0;k++){
 	            kernel = kernels[k];
 	        	lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
 

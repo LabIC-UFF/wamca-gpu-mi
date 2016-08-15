@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 
 	int seed = 100; // 0: random
 	WAMCAExperiment exper(problem, seed);
-	//exper.runWAMCA2016();
+	exper.runWAMCA2016();
 
     l4printf(">>>> BUILT AT %s %s\n",__DATE__,__TIME__);
 
