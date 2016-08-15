@@ -160,7 +160,7 @@ public:
 		lprintf("BEGIN WAMCA 2016 Experiments\n");
 
 	    MLKernel    *kernel;
-	    MLSolution  *solVnd;
+	    //MLSolution  *solVnd;
 	    MLMove       move;
 	    uint         i,max;
 	    ullong       time,timeAvg;
@@ -171,7 +171,7 @@ public:
 	    lprintf("RAND_SEED\t: %u\n",rng.getSeed());
 
 	    timeAvg = 0;
-	    for(uint m=0;m < 10; m++) {
+	    for(uint m=0;m < 3; m++) {
 
 	        lprintf("***\n* Solution #%u\n***\n",m + 1);
 
@@ -183,7 +183,8 @@ public:
 	        solDevice->show(std::cout);
 
 	        //for(int k=MLMI_SWAP;k <= MLMI_OROPT3;k++) {
-	        for(int k=0;k < kernelCount;k++) {
+	        //for(int k=0;k < kernelCount;k++) {
+	        for(int k=0; k <= 0;k++){
 	            kernel = kernels[k];
 	        	lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
 
@@ -230,7 +231,7 @@ public:
 
 	    }
 
-	    delete solVnd;
+	    //delete solVnd;
 	}
 
 
