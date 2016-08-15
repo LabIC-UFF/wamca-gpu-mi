@@ -177,22 +177,29 @@ public:
 
 		    MLSolution* solDevice = new MLSolution(problem);
 	        solDevice->random(rng,0.50);
+	        solDevice->ldsUpdate();
 
 	        lprintf("random solution created!\n");
 	        solDevice->show(std::cout);
 
-	        for(int k=MLMI_SWAP;k <= MLMI_OROPT3;k++) {
+	        //for(int k=MLMI_SWAP;k <= MLMI_OROPT3;k++) {
+	        for(int k=0;k < kernelCount;k++) {
 	            kernel = kernels[k];
 	        	lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
 
 	            kernel->setSolution(solDevice);
 	            lprintf("kernel solution set!\n");
+	            kernel->solution->show(std::cout);
+	            //kernel->solution->ldsShow(std::cout);
+
 	            kernel->sendSolution();
 	            lprintf("kernel solution sent!\n");
 	            kernel->defineKernelGrid(); // TODO: precisa??
 	            lprintf("defined kernel grid!\n");
-	            kernel->launchShowDataKernel(5, 32);
-	            lprintf("printed data!\n");
+
+	            //kernel->launchShowDataKernel(5, 32);
+	            //lprintf("printed data!\n");
+
 	            lprintf("launching kernel k=%d %s!\n",k,kernel->name);
 	            kernel->launchKernel();
 	            kernel->recvResult();

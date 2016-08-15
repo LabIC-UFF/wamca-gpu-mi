@@ -346,6 +346,14 @@ public:
      */
     void
     ldsShow(MLADSField field, std::ostream &os = std::cout);
+
+    void ldsShow(std::ostream &os = std::cout) {
+    	os << "LDS SHOW BEGIN" << std::endl;
+    	for(int f=MLAF_COORD; f<=MLAF_COST; f++)
+    		ldsShow((MLADSField)f,os);
+    	os << "LDS SHOW END" << std::endl;
+    }
+
     /*!
      * Get eval data travel time between two clients.
      */
