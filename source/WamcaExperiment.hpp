@@ -16,6 +16,7 @@
 #include "mlkoropt.h"
 #include "mlk2opt.h"
 
+#include "mlkernel.h"
 
 class WAMCAExperiment
 {
@@ -182,7 +183,7 @@ public:
 
 	        for(int k=MLMI_SWAP;k <= MLMI_OROPT3;k++) {
 	            kernel = kernels[k];
-	        	lprintf("initializing kernel %d with %p\n", k, kernel);
+	        	lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
 
 	            kernel->setSolution(solDevice);
 	            lprintf("kernel solution set!\n");
@@ -190,6 +191,8 @@ public:
 	            lprintf("kernel solution sent!\n");
 	            kernel->defineKernelGrid(); // TODO: precisa??
 	            lprintf("defined kernel grid!\n");
+	            kernel->launchShowDataKernel(5, 32);
+	            lprintf("printed data!\n");
 	            lprintf("launching kernel k=%d %s!\n",k,kernel->name);
 	            kernel->launchKernel();
 	            kernel->recvResult();

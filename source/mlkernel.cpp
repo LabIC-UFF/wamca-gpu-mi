@@ -203,7 +203,7 @@ MLKernel::init(bool solCreate)
     // Move merge graph
     graphMerge.resize(solSize);
 
-#if 1 //LOG_LEVEL > 4
+#if LOG_LEVEL > 4
     lprintf("<<< kernel %s\n",name);
     lprintf("grid(%d,%d,%d)\tblck(%d,%d,%d)\tshared=%u (%u KB)\n",
                     grid.x,grid.y,grid.z,
