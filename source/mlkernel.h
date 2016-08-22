@@ -18,6 +18,9 @@
 #include "graph.hpp"
 #include "utils.h"
 
+#include <thrust/device_vector.h>
+#include <thrust/sort.h>
+
 // ################################################################################ //
 // ##                                                                            ## //
 // ##                               CONSTANTS & MACROS                           ## //
@@ -229,11 +232,24 @@ public:
    /*!
     * Receive kernel result.
     */
+
    void
    recvResult() {
        // Copy results from GPU
        gpuMemcpyAsync(transBuffer.p_void,moveData,moveElems * sizeof(MLMove64),cudaMemcpyDeviceToHost,stream);
    }
+
+   struct OBICmp {
+     __host__ __device__
+     bool operator()(const MLMovePack& o1, const MLMovePack& o2) {
+    	 const MLMove64& mo1 = (const MLMove64&)o1;
+    	 const MLMove64& mo2 = (const MLMove64&)o2;
+         return mo1.cost < mo2.cost;
+     }
+   };
+
+   void
+   processResult();
    /*!
     * Synchronize with kernel stream.
     */

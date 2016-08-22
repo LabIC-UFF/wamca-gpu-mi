@@ -72,7 +72,10 @@ int main(int argc, char **argv)
 	WAMCAExperiment exper(problem, seed);
 	exper.runWAMCA2016();
 
+
     l4printf(">>>> BUILT AT %s %s\n",__DATE__,__TIME__);
+
+    lprintf("finished successfully\n");
 
     return 0;
 }

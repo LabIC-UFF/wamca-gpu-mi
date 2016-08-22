@@ -186,25 +186,27 @@ public:
 
 	        //for(int k=MLMI_SWAP;k <= MLMI_OROPT3;k++) {
 	        for(int k=0;k < kernelCount;k++) {
-	        //for(int k=0; k <= 0;k++){
 	            kernel = kernels[k];
-	        	lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
+	        	//lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
 
 	            kernel->setSolution(solDevice);
-	            lprintf("kernel solution set!\n");
-	            kernel->solution->show(std::cout);
+	            //lprintf("kernel solution set!\n");
+	            //kernel->solution->show(std::cout);
 	            //kernel->solution->ldsShow(std::cout);
 
 	            kernel->sendSolution();
-	            lprintf("kernel solution sent!\n");
+	            //lprintf("kernel solution sent!\n");
 	            kernel->defineKernelGrid(); // TODO: precisa??
-	            lprintf("defined kernel grid!\n");
+	            //lprintf("defined kernel grid!\n");
 
 	            //kernel->launchShowDataKernel(5, 32);
 	            //lprintf("printed data!\n");
 
 	            lprintf("launching kernel k=%d %s!\n",k,kernel->name);
 	            kernel->launchKernel();
+	            kernel->sync();
+	            kernel->processResult();
+	            kernel->sync();
 	            kernel->recvResult();
 	            kernel->sync();
 	            lprintf("kernel result received!\n");

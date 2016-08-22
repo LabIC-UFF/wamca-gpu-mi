@@ -68,6 +68,26 @@ MLKernel::~MLKernel()
         term();
 }
 
+
+void
+MLKernel::processResult() {
+       // Copy results from GPU
+   	   thrust::device_ptr<MLMovePack> td_moveData(moveData);
+   	   thrust::sort(td_moveData, td_moveData+moveElems, OBICmp());
+
+   	   //thrust::device_vector<int> dmove;
+   	   //thrust::sort(dmove.begin(), dmove.end(), ICmp());
+
+       gpuMemcpyAsync(transBuffer.p_void,moveData,moveElems * sizeof(MLMove64),cudaMemcpyDeviceToHost,stream);
+       MLMove64* p_pack = transBuffer.p_move64;
+       sync();
+
+       printf("hello baby!\n");
+       for(unsigned i=0; i<moveElems; i++)
+    	   printf("%d\t",p_pack[i].cost);
+       printf("\n");
+   }
+
 void
 MLKernel::reset()
 {
@@ -434,7 +454,7 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
 #endif
         graphMerge.addVertex(moves + i,0);
     }
-    l4printf("Graph  %d/%d %s moves\n",graphMerge.vertexCount,n,name);
+    lprintf("Graph  %d/%d %s moves\n",graphMerge.vertexCount,n,name);
 
     // Set conflicts (edges)
     for(i=0;i < graphMerge.vertexCount;i++) {
