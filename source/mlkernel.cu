@@ -44,6 +44,8 @@ using namespace std;
 
 __global__ void testSwap(MLMove64* g_move64, int numElems)
 {
+	if(tx >= numElems)
+		return;
 	extern __shared__ MLMove64 s_move64[];
 
 	register MLMove64 m = g_move64[tx];
@@ -142,7 +144,19 @@ MLKernel::mergeGPU() {
 
 	if (this->id == 0) // SWAP
 	{
-		testSwap<<<grid, block, moveElems * sizeof(MLMove64), stream>>>((MLMove64*) moveData, moveElems);
+		int minGridSize;
+		int blockSize;
+		size_t sMemSize = moveElems * sizeof(MLMove64);
+		int blockSizeLimit = moveElems;
+
+		gpuOccupancyMaxPotentialBlockSizeVariableSMem(&minGridSize, &blockSize, testSwap, __cudaOccupancyB2DHelper(sMemSize), blockSizeLimit);
+
+		//printf("minGridSize=%d blockSize=%d moveElems=%d\n",minGridSize, blockSize, moveElems);
+		//getchar();
+		//getchar();
+		block.x = blockSize;
+
+		testSwap<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
 		/*
 		gpuMemcpyAsync(transBuffer.p_void, moveData, moveElems * sizeof(MLMove64), cudaMemcpyDeviceToHost, stream);
 		MLMove64* p_pack = transBuffer.p_move64;
@@ -385,11 +399,11 @@ MLKernel::bestMove(MLMove &move)
 
 inline
 bool
-canSwapMerge(MLMove64 *m1, MLMove64 *m2)
+canSwapMerge(MLMove64 *m1, MLMove64 *m2) // TODO: SWAP MERGE!
 {
     switch(m2->id) {
     case MLMI_SWAP:
-    	//return true;
+//    	return true;
 
         return ( abs(int(m1->i - m2->i)) > 1 ) &&
                ( abs(int(m1->i - m2->j)) > 1 ) &&

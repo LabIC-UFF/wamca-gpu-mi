@@ -169,7 +169,7 @@ public:
 	    int          movesCount,
 	                 movesCost;
 	    char         buffer[128];
-	    int impr;  // total cost improvement
+	    int impr, countImpr;  // total cost improvement
 	    std::clock_t start;
 	    double duration; // clock duration
 
@@ -219,17 +219,19 @@ public:
 	            kernel->sync();
 	            movesCost = kernel->mergeGreedy(mergeBuffer,movesCount);
 	            impr = 0;
+	            countImpr = 0;
 	            for(unsigned iter=0; iter<movesCount; ++iter) {
 					move64ToMove(move, mergeBuffer[iter]);
 					if(move.cost < 0) {
 						impr += move.cost;
+						countImpr++;
 						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
 						kernel->applyMove(move);
 					}
 				}
 	            duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
 	            printf("partial GPU-CPU time %.7f ms\n", duration);
-	            printf("partial GPU-CPU improvement=%d\n", impr);
+	            printf("partial GPU-CPU improvement=%d count=%d\n", impr, countImpr);
 
 
 	            start = std::clock();
@@ -239,17 +241,19 @@ public:
 	            kernel->recvResult();
 	            kernel->sync();
 				impr = 0;
+				countImpr = 0;
 				for (unsigned iter = 0; iter < movesCount; ++iter) {
 					move64ToMove(move, mergeBuffer[iter]);
 					if (move.cost < 0) {
 						impr += move.cost;
+						countImpr++;
 						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
 						kernel->applyMove(move);
 					}
 				}
 				duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
 				printf("partial GPU-GPU time %.7f ms\n", duration);
-				printf("partial GPU-GPU improvement=%d\n", impr);
+				printf("partial GPU-GPU improvement=%d count=%d\n", impr, countImpr);
 
 
 
