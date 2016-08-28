@@ -31,19 +31,15 @@ using namespace std;
 
 #define tx      threadIdx.x
 
-__device__ bool d_canSwapMerge(MLMove64 m1, MLMove64 m2)
-{
-	return ( abs(int(m1.i - m2.i)) > 1 ) &&
-       ( abs(int(m1.i - m2.j)) > 1 ) &&
-       ( abs(int(m1.j - m2.i)) > 1 ) &&
-       ( abs(int(m1.j - m2.j)) > 1 );
-}
+
 
 #define def_canSwapMerge(m1,m2) (  ( GPU_ABS(int(m1.i - m2.i)) > 1 ) && \
 							       ( GPU_ABS(int(m1.i - m2.j)) > 1 ) && \
 							       ( GPU_ABS(int(m1.j - m2.i)) > 1 ) && \
 							       ( GPU_ABS(int(m1.j - m2.j)) > 1 ) )
 
+
+//#define def_canSwapMerge(m1,m2) ( true )
 
 
 __global__ void testSwap(MLMove64* g_move64, int numElems)
@@ -117,14 +113,11 @@ MLKernel::~MLKernel()
 
 
 void
-MLKernel::processResult() {
-       // Copy results from GPU
+MLKernel::mergeGPU() {
    	   thrust::device_ptr<MLMovePack> td_moveData(moveData);
    	   thrust::sort(td_moveData, td_moveData+moveElems, OBICmp());
 
-   	   //thrust::device_vector<int> dmove;
-   	   //thrust::sort(dmove.begin(), dmove.end(), ICmp());
-
+/*
        gpuMemcpyAsync(transBuffer.p_void,moveData,moveElems * sizeof(MLMove64),cudaMemcpyDeviceToHost,stream);
        MLMove64* p_pack = transBuffer.p_move64;
        sync();
@@ -138,17 +131,19 @@ MLKernel::processResult() {
        }
        printf("\n");
        printf("count negative=%d moveElems=%d\n", count, moveElems);
+*/
 
        dim3 grid, block;
        grid.x = grid.y = grid.z = 1;
        block.x = moveElems;
        block.y = block.z = 1;
 
-       printf("kernel_id=%d\n",this->id);
+       //printf("kernel_id=%d\n",this->id);
 
 	if (this->id == 0) // SWAP
 	{
 		testSwap<<<grid, block, moveElems * sizeof(MLMove64), stream>>>((MLMove64*) moveData, moveElems);
+		/*
 		gpuMemcpyAsync(transBuffer.p_void, moveData, moveElems * sizeof(MLMove64), cudaMemcpyDeviceToHost, stream);
 		MLMove64* p_pack = transBuffer.p_move64;
 		sync();
@@ -163,7 +158,7 @@ MLKernel::processResult() {
 		}
 		printf("\n");
 		printf("count negative=%d moveElems=%d\n", count, moveElems);
-
+		*/
 	}
     else
        {
@@ -299,6 +294,7 @@ MLKernel::init(bool solCreate)
      */
     moveDataSize = solSize * sizeof(ullong);
     gpuMalloc(&moveData,moveDataSize);
+    gpuMalloc(&moveDataBackup,moveDataSize);
 
     transBufferSize = moveDataSize;
     gpuHostMalloc(&transBuffer.p_void,transBufferSize,0);//???gpuTask.params.allocFlags); TODO: fix
@@ -341,6 +337,7 @@ MLKernel::term()
 
     gpuFree(adsData);
     gpuFree(moveData);
+    gpuFree(moveDataBackup);
 
     gpuHostFree(transBuffer.p_void,0);//????gpuTask.params.allocFlags); TODO: fix
 
@@ -392,10 +389,13 @@ canSwapMerge(MLMove64 *m1, MLMove64 *m2)
 {
     switch(m2->id) {
     case MLMI_SWAP:
+    	//return true;
+
         return ( abs(int(m1->i - m2->i)) > 1 ) &&
                ( abs(int(m1->i - m2->j)) > 1 ) &&
                ( abs(int(m1->j - m2->i)) > 1 ) &&
                ( abs(int(m1->j - m2->j)) > 1 );
+
     case MLMI_2OPT:
         return ( (m1->i < m2->i - 1) || (m1->i > m2->j + 1) ) &&
                ( (m1->j < m2->i - 1) || (m1->j > m2->j + 1) );

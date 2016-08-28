@@ -169,6 +169,9 @@ public:
 	    int          movesCount,
 	                 movesCost;
 	    char         buffer[128];
+	    int impr;  // total cost improvement
+	    std::clock_t start;
+	    double duration; // clock duration
 
 	    lprintf("RAND_SEED\t: %u\n",rng.getSeed());
 
@@ -202,39 +205,54 @@ public:
 	            //kernel->launchShowDataKernel(5, 32);
 	            //lprintf("printed data!\n");
 
+
 	            lprintf("launching kernel k=%d %s!\n",k,kernel->name);
+                start = std::clock();
 	            kernel->launchKernel();
 	            kernel->sync();
-	            kernel->processResult();
-	            kernel->sync();
+	            duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
+	            printf("kernel time %.7f ms\n", duration);
+
+	            start = std::clock();
+	            // partial GPU-CPU
 	            kernel->recvResult();
 	            kernel->sync();
-	            lprintf("kernel result received!\n");
-
-	            l4printf("time = %llu us = %llu ms\n",time,time / 1000);
-
 	            movesCost = kernel->mergeGreedy(mergeBuffer,movesCount);
-
-	            lprintf("-- Merged %4d %s moves\tmerge_cost=%d\tsol_cost=%d\n",
-	                                movesCount,kernel->name,movesCost,kernel->solution->cost);
-	//            for(int j=0;j < mergeCount;j++)
-	//                lprintf("(%d,%d,%d)",mergeBuffer[j].i,mergeBuffer[j].j,mergeBuffer[j].cost);
-	//            lprintf("\n");
-
-	            /*
-	            while(movesCount > 0) {
-	                move64ToMove(move,mergeBuffer[--movesCount]);
-	                l4printf("Apply %s(%d,%d) = %d\n",kernel->name,move.i,move.j,move.cost);
-	                kernel->applyMove(move);
-	            }
-	            */
-				for(unsigned iter=0; iter<movesCount; ++iter) {
+	            impr = 0;
+	            for(unsigned iter=0; iter<movesCount; ++iter) {
 					move64ToMove(move, mergeBuffer[iter]);
 					if(move.cost < 0) {
+						impr += move.cost;
 						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
 						kernel->applyMove(move);
 					}
 				}
+	            duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
+	            printf("partial GPU-CPU time %.7f ms\n", duration);
+	            printf("partial GPU-CPU improvement=%d\n", impr);
+
+
+	            start = std::clock();
+	            // partial GPU-GPU
+	            kernel->mergeGPU();
+	            //kernel->sync();
+	            kernel->recvResult();
+	            kernel->sync();
+				impr = 0;
+				for (unsigned iter = 0; iter < movesCount; ++iter) {
+					move64ToMove(move, mergeBuffer[iter]);
+					if (move.cost < 0) {
+						impr += move.cost;
+						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
+						kernel->applyMove(move);
+					}
+				}
+				duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
+				printf("partial GPU-GPU time %.7f ms\n", duration);
+				printf("partial GPU-GPU improvement=%d\n", impr);
+
+
+
 
 	            l4printf("Cost improvement: %d --> %d = %d\n",
 	                            int(solDevice->cost),
