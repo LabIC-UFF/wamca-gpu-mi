@@ -221,11 +221,21 @@ public:
 	//                lprintf("(%d,%d,%d)",mergeBuffer[j].i,mergeBuffer[j].j,mergeBuffer[j].cost);
 	//            lprintf("\n");
 
+	            /*
 	            while(movesCount > 0) {
 	                move64ToMove(move,mergeBuffer[--movesCount]);
 	                l4printf("Apply %s(%d,%d) = %d\n",kernel->name,move.i,move.j,move.cost);
 	                kernel->applyMove(move);
 	            }
+	            */
+				for(unsigned iter=0; iter<movesCount; ++iter) {
+					move64ToMove(move, mergeBuffer[iter]);
+					if(move.cost < 0) {
+						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
+						kernel->applyMove(move);
+					}
+				}
+
 	            l4printf("Cost improvement: %d --> %d = %d\n",
 	                            int(solDevice->cost),
 	                            int(kernel->solution->cost),

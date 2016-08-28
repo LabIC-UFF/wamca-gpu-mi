@@ -29,6 +29,53 @@ using namespace std;
 #define MINMAX(a,b,min,max)     if(a < b) { min = a; max = b; } \
                                 else      { min = b; max = a; }
 
+#define tx      threadIdx.x
+
+__device__ bool d_canSwapMerge(MLMove64 m1, MLMove64 m2)
+{
+	return ( abs(int(m1.i - m2.i)) > 1 ) &&
+       ( abs(int(m1.i - m2.j)) > 1 ) &&
+       ( abs(int(m1.j - m2.i)) > 1 ) &&
+       ( abs(int(m1.j - m2.j)) > 1 );
+}
+
+#define def_canSwapMerge(m1,m2) (  ( GPU_ABS(int(m1.i - m2.i)) > 1 ) && \
+							       ( GPU_ABS(int(m1.i - m2.j)) > 1 ) && \
+							       ( GPU_ABS(int(m1.j - m2.i)) > 1 ) && \
+							       ( GPU_ABS(int(m1.j - m2.j)) > 1 ) )
+
+
+
+__global__ void testSwap(MLMove64* g_move64, int numElems)
+{
+	extern __shared__ MLMove64 s_move64[];
+
+	register MLMove64 m = g_move64[tx];
+	//if(m >= 0){
+	//	m.id = 1000; // giant value
+	//	return;
+	//}
+	s_move64[tx] = m;
+	syncthreads();
+
+	for(int i=0; i<=tx; ++i) { // tx 'or' numElems (?) symmetry?
+		if(i != tx) {
+			register MLMove64 mi = s_move64[i];
+			if(mi.cost < 0) {
+				register MLMove64 mx = s_move64[tx];
+				if(!def_canSwapMerge(mi, mx))
+					s_move64[tx].cost = 0;
+			}
+		}
+		syncthreads();
+	}
+
+	if(s_move64[tx].cost == 0)
+		g_move64[tx] = s_move64[tx];
+
+	// end kernel
+}
+
 // ################################################################################ //
 // ##                                                                            ## //
 // ##                                  DATA TYPES                                ## //
@@ -82,10 +129,50 @@ MLKernel::processResult() {
        MLMove64* p_pack = transBuffer.p_move64;
        sync();
 
-       printf("hello baby!\n");
-       for(unsigned i=0; i<moveElems; i++)
+       printf("FIRST PRINT!\n");
+       int count = 0;
+       for(unsigned i=0; i<moveElems; i++) {
     	   printf("%d\t",p_pack[i].cost);
+    	   if(p_pack[i].cost < 0)
+    		   count++;
+       }
        printf("\n");
+       printf("count negative=%d moveElems=%d\n", count, moveElems);
+
+       dim3 grid, block;
+       grid.x = grid.y = grid.z = 1;
+       block.x = moveElems;
+       block.y = block.z = 1;
+
+       printf("kernel_id=%d\n",this->id);
+
+	if (this->id == 0) // SWAP
+	{
+		testSwap<<<grid, block, moveElems * sizeof(MLMove64), stream>>>((MLMove64*) moveData, moveElems);
+		gpuMemcpyAsync(transBuffer.p_void, moveData, moveElems * sizeof(MLMove64), cudaMemcpyDeviceToHost, stream);
+		MLMove64* p_pack = transBuffer.p_move64;
+		sync();
+
+		printf("SECOND PRINT!\n");
+		int count = 0;
+		for (unsigned i = 0; i < moveElems; i++)
+		{
+			printf("%d\t", p_pack[i].cost);
+			if (p_pack[i].cost < 0)
+				count++;
+		}
+		printf("\n");
+		printf("count negative=%d moveElems=%d\n", count, moveElems);
+
+	}
+    else
+       {
+    	   printf("NO KERNEL TO CALL.. YET!\n");
+    	   getchar();
+       }
+       // TODO: djdiusdisjd
+
+       //cudaOccupancyMaxPotentialBlockSizeVariableSMem(  // TODO:USE!
    }
 
 void
@@ -155,7 +242,6 @@ MLKernel::init(bool solCreate)
     // Kernel stream
     gpuStreamCreate(&stream);
 
-// TODO: SET PROFILER TAGS!
 //#ifdef GPU_PROFILE
 //    // Set stream name for NVIDIA Profiler
 //    nvtxNameCuStreamA(stream,name);
