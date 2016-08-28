@@ -10,6 +10,9 @@ RM := rm -rf
 -include sources.mk
 -include subdir.mk
 -include source/subdir.mk
+
+OS_SUFFIX := $(subst Linux,linux,$(subst Darwin/x86_64,darwin,$(shell uname -s)/$(shell uname -m)))
+
 -include objects.mk
 
 ifneq ($(MAKECMDGOALS),clean)
@@ -38,6 +41,14 @@ endif
 
 -include ../makefile.defs
 
+# OpenGL+GLUT OS-specific define
+ifeq ($(shell uname -s),Darwin)
+GLUT_LIBS := -Xlinker -framework -Xlinker GLUT -Xlinker -framework -Xlinker OpenGL
+else
+GLUT_LIBS := -lGL -lGLU -lglut 
+endif
+
+
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
@@ -47,7 +58,7 @@ all: wamca2016
 wamca2016: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: NVCC Linker'
-	/usr/local/cuda-6.5/bin/nvcc --cudart static -L../../lib --relocatable-device-code=false -gencode arch=compute_35,code=compute_35 -gencode arch=compute_35,code=sm_35 -link -o  "wamca2016" $(OBJS) $(USER_OBJS) $(LIBS)
+	/usr/local/cuda-7.5/bin/nvcc --cudart static -L../../lib --relocatable-device-code=false -gencode arch=compute_35,code=compute_35 -gencode arch=compute_35,code=sm_35 -link -o  "wamca2016" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 	$(MAKE) --no-print-directory post-build

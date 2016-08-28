@@ -122,6 +122,8 @@ source/mlsolution.o : ../source/mlsolution.cpp \
     /usr/include/c++/4.9/ext/alloc_traits.h \
     /usr/include/c++/4.9/cstddef \
     /usr/include/math.h \
+    /usr/include/x86_64-linux-gnu/bits/math-vector.h \
+    /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
     /usr/include/x86_64-linux-gnu/bits/huge_val.h \
     /usr/include/x86_64-linux-gnu/bits/huge_valf.h \
     /usr/include/x86_64-linux-gnu/bits/huge_vall.h \
@@ -148,13 +150,13 @@ source/mlsolution.o : ../source/mlsolution.cpp \
     ../source/types.h \
     ../source/mlsolution.h \
     ../source/gpu.h \
-    /usr/local/cuda-6.5/bin/..//include/cuda.h \
-    /usr/local/cuda-6.5/bin/..//include/cuda_runtime.h \
-    /usr/local/cuda-6.5/bin/..//include/host_config.h \
-    /usr/local/cuda-6.5/bin/..//include/builtin_types.h \
-    /usr/local/cuda-6.5/bin/..//include/device_types.h \
-    /usr/local/cuda-6.5/bin/..//include/host_defines.h \
-    /usr/local/cuda-6.5/bin/..//include/driver_types.h \
+    /usr/local/cuda-7.5/bin/..//include/cuda.h \
+    /usr/local/cuda-7.5/bin/..//include/cuda_runtime.h \
+    /usr/local/cuda-7.5/bin/..//include/host_config.h \
+    /usr/local/cuda-7.5/bin/..//include/builtin_types.h \
+    /usr/local/cuda-7.5/bin/..//include/device_types.h \
+    /usr/local/cuda-7.5/bin/..//include/host_defines.h \
+    /usr/local/cuda-7.5/bin/..//include/driver_types.h \
     /usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed/limits.h \
     /usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed/syslimits.h \
     /usr/include/limits.h \
@@ -163,15 +165,16 @@ source/mlsolution.o : ../source/mlsolution.cpp \
     /usr/include/linux/limits.h \
     /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
     /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
-    /usr/local/cuda-6.5/bin/..//include/surface_types.h \
-    /usr/local/cuda-6.5/bin/..//include/texture_types.h \
-    /usr/local/cuda-6.5/bin/..//include/vector_types.h \
-    /usr/local/cuda-6.5/bin/..//include/channel_descriptor.h \
-    /usr/local/cuda-6.5/bin/..//include/cuda_runtime_api.h \
-    /usr/local/cuda-6.5/bin/..//include/cuda_device_runtime_api.h \
-    /usr/local/cuda-6.5/bin/..//include/driver_functions.h \
-    /usr/local/cuda-6.5/bin/..//include/vector_functions.h \
-    /usr/local/cuda-6.5/bin/..//include/cuda_profiler_api.h \
+    /usr/local/cuda-7.5/bin/..//include/surface_types.h \
+    /usr/local/cuda-7.5/bin/..//include/texture_types.h \
+    /usr/local/cuda-7.5/bin/..//include/vector_types.h \
+    /usr/local/cuda-7.5/bin/..//include/channel_descriptor.h \
+    /usr/local/cuda-7.5/bin/..//include/cuda_runtime_api.h \
+    /usr/local/cuda-7.5/bin/..//include/cuda_device_runtime_api.h \
+    /usr/local/cuda-7.5/bin/..//include/driver_functions.h \
+    /usr/local/cuda-7.5/bin/..//include/vector_functions.h \
+    /usr/local/cuda-7.5/bin/..//include/vector_functions.hpp \
+    /usr/local/cuda-7.5/bin/..//include/cuda_profiler_api.h \
     ../source/cuda/gpu_helper.h \
     ../source/cuda/gpu_string.h \
     /usr/include/c++/4.9/fstream \
@@ -180,10 +183,10 @@ source/mlsolution.o : ../source/mlsolution.cpp \
     /usr/include/x86_64-linux-gnu/c++/4.9/bits/c++io.h \
     /usr/include/c++/4.9/bits/fstream.tcc \
     /usr/include/strings.h \
-    /usr/local/cuda-6.5/bin/..//include/nvToolsExt.h \
+    /usr/local/cuda-7.5/bin/..//include/nvToolsExt.h \
     /usr/lib/gcc/x86_64-linux-gnu/4.9/include/stdint.h \
     /usr/include/stdint.h \
-    /usr/local/cuda-6.5/bin/..//include/nvToolsExtCuda.h \
+    /usr/local/cuda-7.5/bin/..//include/nvToolsExtCuda.h \
     ../source/mtrand.h \
     /usr/include/c++/4.9/ctime \
     ../source/mlproblem.h \

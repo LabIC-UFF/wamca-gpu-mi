@@ -124,6 +124,8 @@ source/tsplib.o : ../source/tsplib.cpp \
     /usr/include/string.h \
     /usr/include/x86_64-linux-gnu/bits/string3.h \
     /usr/include/math.h \
+    /usr/include/x86_64-linux-gnu/bits/math-vector.h \
+    /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
     /usr/include/x86_64-linux-gnu/bits/huge_val.h \
     /usr/include/x86_64-linux-gnu/bits/huge_valf.h \
     /usr/include/x86_64-linux-gnu/bits/huge_vall.h \

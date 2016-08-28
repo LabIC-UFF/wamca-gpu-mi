@@ -60,16 +60,16 @@ CPP_DEPS += \
 source/%.o: ../source/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: NVCC Compiler'
-	/usr/local/cuda-6.5/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -lineinfo -O3 -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v -gencode arch=compute_35,code=sm_35  -odir "source" -M -o "$(@:%.o=%.d)" "$<"
-	/usr/local/cuda-6.5/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -lineinfo -O3 -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v --compile  -x c++ -o  "$@" "$<"
+	/usr/local/cuda-7.5/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -lineinfo -O3 -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v -gencode arch=compute_35,code=sm_35  -odir "source" -M -o "$(@:%.o=%.d)" "$<"
+	/usr/local/cuda-7.5/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -lineinfo -O3 -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v --compile  -x c++ -o  "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
 source/%.o: ../source/%.cu
 	@echo 'Building file: $<'
 	@echo 'Invoking: NVCC Compiler'
-	/usr/local/cuda-6.5/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -lineinfo -O3 -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v -gencode arch=compute_35,code=sm_35  -odir "source" -M -o "$(@:%.o=%.d)" "$<"
-	/usr/local/cuda-6.5/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -lineinfo -O3 -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v --compile --relocatable-device-code=false -gencode arch=compute_35,code=compute_35 -gencode arch=compute_35,code=sm_35  -x cu -o  "$@" "$<"
+	/usr/local/cuda-7.5/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -lineinfo -O3 -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v -gencode arch=compute_35,code=sm_35  -odir "source" -M -o "$(@:%.o=%.d)" "$<"
+	/usr/local/cuda-7.5/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -lineinfo -O3 -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v --compile --relocatable-device-code=false -gencode arch=compute_35,code=compute_35 -gencode arch=compute_35,code=sm_35  -x cu -o  "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

@@ -32,13 +32,13 @@ source/mlads.o : ../source/mlads.cpp \
     /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
     /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
     /usr/include/x86_64-linux-gnu/bits/stdlib.h \
-    /usr/local/cuda-6.5/bin/..//include/cuda.h \
-    /usr/local/cuda-6.5/bin/..//include/cuda_runtime.h \
-    /usr/local/cuda-6.5/bin/..//include/host_config.h \
-    /usr/local/cuda-6.5/bin/..//include/builtin_types.h \
-    /usr/local/cuda-6.5/bin/..//include/device_types.h \
-    /usr/local/cuda-6.5/bin/..//include/host_defines.h \
-    /usr/local/cuda-6.5/bin/..//include/driver_types.h \
+    /usr/local/cuda-7.5/bin/..//include/cuda.h \
+    /usr/local/cuda-7.5/bin/..//include/cuda_runtime.h \
+    /usr/local/cuda-7.5/bin/..//include/host_config.h \
+    /usr/local/cuda-7.5/bin/..//include/builtin_types.h \
+    /usr/local/cuda-7.5/bin/..//include/device_types.h \
+    /usr/local/cuda-7.5/bin/..//include/host_defines.h \
+    /usr/local/cuda-7.5/bin/..//include/driver_types.h \
     /usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed/limits.h \
     /usr/lib/gcc/x86_64-linux-gnu/4.9/include-fixed/syslimits.h \
     /usr/include/limits.h \
@@ -48,15 +48,16 @@ source/mlads.o : ../source/mlads.cpp \
     /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
     /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
     /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
-    /usr/local/cuda-6.5/bin/..//include/surface_types.h \
-    /usr/local/cuda-6.5/bin/..//include/texture_types.h \
-    /usr/local/cuda-6.5/bin/..//include/vector_types.h \
-    /usr/local/cuda-6.5/bin/..//include/channel_descriptor.h \
-    /usr/local/cuda-6.5/bin/..//include/cuda_runtime_api.h \
-    /usr/local/cuda-6.5/bin/..//include/cuda_device_runtime_api.h \
-    /usr/local/cuda-6.5/bin/..//include/driver_functions.h \
-    /usr/local/cuda-6.5/bin/..//include/vector_functions.h \
-    /usr/local/cuda-6.5/bin/..//include/cuda_profiler_api.h \
+    /usr/local/cuda-7.5/bin/..//include/surface_types.h \
+    /usr/local/cuda-7.5/bin/..//include/texture_types.h \
+    /usr/local/cuda-7.5/bin/..//include/vector_types.h \
+    /usr/local/cuda-7.5/bin/..//include/channel_descriptor.h \
+    /usr/local/cuda-7.5/bin/..//include/cuda_runtime_api.h \
+    /usr/local/cuda-7.5/bin/..//include/cuda_device_runtime_api.h \
+    /usr/local/cuda-7.5/bin/..//include/driver_functions.h \
+    /usr/local/cuda-7.5/bin/..//include/vector_functions.h \
+    /usr/local/cuda-7.5/bin/..//include/vector_functions.hpp \
+    /usr/local/cuda-7.5/bin/..//include/cuda_profiler_api.h \
     ../source/cuda/gpu_helper.h \
     /usr/include/stdio.h \
     /usr/include/libio.h \
@@ -151,7 +152,7 @@ source/mlads.o : ../source/mlads.cpp \
     /usr/include/x86_64-linux-gnu/c++/4.9/bits/c++io.h \
     /usr/include/c++/4.9/bits/fstream.tcc \
     /usr/include/strings.h \
-    /usr/local/cuda-6.5/bin/..//include/nvToolsExt.h \
+    /usr/local/cuda-7.5/bin/..//include/nvToolsExt.h \
     /usr/lib/gcc/x86_64-linux-gnu/4.9/include/stdint.h \
     /usr/include/stdint.h \
-    /usr/local/cuda-6.5/bin/..//include/nvToolsExtCuda.h
+    /usr/local/cuda-7.5/bin/..//include/nvToolsExtCuda.h
