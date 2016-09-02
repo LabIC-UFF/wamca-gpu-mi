@@ -38,9 +38,14 @@ using namespace std;
 							       ( GPU_ABS(int(m1.j - m2.i)) > 1 ) && \
 							       ( GPU_ABS(int(m1.j - m2.j)) > 1 ) )
 
+__forceinline__ __device__ bool f_canSwapMerge(MLMove64& m1, MLMove64& m2) {
+	return     ( GPU_ABS(int(m1.i - m2.i)) > 1 ) &&
+		       ( GPU_ABS(int(m1.i - m2.j)) > 1 ) &&
+		       ( GPU_ABS(int(m1.j - m2.i)) > 1 ) &&
+		       ( GPU_ABS(int(m1.j - m2.j)) > 1 );
+}
 
 //#define def_canSwapMerge(m1,m2) ( true )
-
 
 __global__ void testSwap(MLMove64* g_move64, int numElems)
 {
@@ -61,7 +66,7 @@ __global__ void testSwap(MLMove64* g_move64, int numElems)
 			register MLMove64 mi = s_move64[i];
 			if(mi.cost < 0) {
 				register MLMove64 mx = s_move64[tx];
-				if(!def_canSwapMerge(mi, mx))
+				if(!f_canSwapMerge(mi, mx))
 					s_move64[tx].cost = 0;
 			}
 		}
@@ -537,6 +542,7 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
     // Sort moves
     sort(moves,moves + n,compMove);
 
+    /*
     // If first moves has no gain, or ONLY first move has gain, returns
     if((moves[0].cost >= 0) || ((moves[0].cost < 0) && (moves[1].cost >= 0))) {
         merge[0] = moves[0];
@@ -544,6 +550,7 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
         l4printf("Graph  %d/%d %s moves (return)\n",count,n,name);
         return  moves[0].cost;
     }
+    */
 
     // Assign moves to graph
     graphMerge.clear();
@@ -560,9 +567,19 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
     for(i=0;i < graphMerge.vertexCount;i++) {
         for(j=i;j < graphMerge.vertexCount;j++) {
             if(!canMerge(graphMerge[i],graphMerge[j]))
-                graphMerge.setEdge(i,j);
+            	graphMerge.setEdge(i,j);
         }
     }
+
+    // PRINT FLAGS
+    /*
+    lprintf("Print FLAGS:\n");
+    for(i=0;i < graphMerge.vertexCount;i++) {
+   	    lprintf("PFLAG id=%d cost=%d flag=%d\n",i, graphMerge[i]->cost, graphMerge.getFlag(i));
+    }
+    lprintf("\n");
+    */
+    lprintf("edge(0,1) = %d\n", graphMerge.hasEdge(0,1));
 
 #if 0
     /*
@@ -602,6 +619,7 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
         for(j=i + 1;j < graphMerge.vertexCount;j++) {
             if(graphMerge.hasEdge(i,j))
                 graphMerge.setFlag(j,1);
+
         }
     }
 

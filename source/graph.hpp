@@ -175,16 +175,16 @@ public:
     getFlag(int i) {
         ASSERT(i < vertexCount,
                "%s: invalid index range (i=%d, count=%d)",__FUNCTION__,i,vertexCount);
-        return flags[i / GRAPH_WORD_BITS] & (1 << (i % GRAPH_WORD_BITS));
+        return flags[i / GRAPH_WORD_BITS] & (1ul << (i % GRAPH_WORD_BITS));
     }
     void
     setFlag(int i, short flag) {
         ASSERT(i < vertexCount,
                "%s: invalid index range (i=%d, count=%d)",__FUNCTION__,i,vertexCount);
         if(flag)
-            flags[i / GRAPH_WORD_BITS] |=   1 << (i % GRAPH_WORD_BITS);
+            flags[i / GRAPH_WORD_BITS] |=   1ul << (i % GRAPH_WORD_BITS);
         else
-            flags[i / GRAPH_WORD_BITS] &= ~(1 << (i % GRAPH_WORD_BITS));
+            flags[i / GRAPH_WORD_BITS] &= ~(1ul << (i % GRAPH_WORD_BITS));
     }
     void
     setEdge(int i, int j) {
@@ -196,7 +196,7 @@ public:
         ASSERT((i < vertexCount) && (j < vertexCount),
                "%s: invalid index range (i=%d, j=%d, count=%d)",__FUNCTION__,i,j,vertexCount);
         i = i*bitWords + (j / GRAPH_WORD_BITS);
-        edges[i] |= 1 << (j % GRAPH_WORD_BITS);
+        edges[i] |= 1ul << (j % GRAPH_WORD_BITS);
     }
     void
     delEdge(int i, int j) {
@@ -208,14 +208,14 @@ public:
         ASSERT((i < vertexCount) && (j < vertexCount),
                "%s: invalid index range (i=%d, j=%d, count=%d)",__FUNCTION__,i,j,vertexCount);
         i = i*bitWords + (j / GRAPH_WORD_BITS);
-        edges[i] &= ~(1 << (j % GRAPH_WORD_BITS));
+        edges[i] &= ~(1ul << (j % GRAPH_WORD_BITS));
     }
     int
     hasEdge(int i, int j) {
         ASSERT((i < vertexCount) && (j < vertexCount),
                "%s: invalid index range (i=%d, j=%d, count=%d)",__FUNCTION__,i,j,vertexCount);
         i = i*bitWords + (j / GRAPH_WORD_BITS);
-        return edges[i] & (1 << (j % GRAPH_WORD_BITS));
+        return (edges[i] & (1ul << (j % GRAPH_WORD_BITS))) > 0;
     }
     void
     showEdges(std::ostream &os = std::cout) {
