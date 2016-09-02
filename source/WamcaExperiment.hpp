@@ -212,6 +212,7 @@ public:
 
 
 	            lprintf("launching kernel k=%d %s!\n",k,kernel->name);
+	            lprintf("kernel moveElems=%d!\n",kernel->moveElems);
                 start = std::clock();
 	            kernel->launchKernel();
 	            kernel->sync();
@@ -247,6 +248,7 @@ public:
 	            printf("partial GPU-CPU improvement=%d count=%d moveCount=%d\n", impr, countImpr, movesCount);
 
 
+	            lprintf("kernel 2 moveElems=%d!\n",kernel->moveElems);
 	            start = std::clock();
 	            // partial GPU-GPU
 	            kernel->mergeGPU();

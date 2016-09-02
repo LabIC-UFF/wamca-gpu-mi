@@ -59,6 +59,8 @@ __global__ void testSwap(MLMove64* g_move64, int numElems)
 	//	return;
 	//}
 	s_move64[tx] = m;
+	if(s_move64[tx].cost >= 0)
+		return;
 	syncthreads();
 
 	for(int i=0; i<=tx; ++i) { // tx 'or' numElems (?) symmetry?
@@ -156,7 +158,7 @@ MLKernel::mergeGPU() {
 
 		gpuOccupancyMaxPotentialBlockSizeVariableSMem(&minGridSize, &blockSize, testSwap, __cudaOccupancyB2DHelper(sMemSize), blockSizeLimit);
 
-		printf("minGridSize=%d blockSize=%d moveElems=%d\n",minGridSize, blockSize, moveElems);
+		//printf("minGridSize=%d blockSize=%d moveElems=%d\n",minGridSize, blockSize, moveElems);
 		//getchar();
 		//getchar();
 
