@@ -66,7 +66,7 @@ __global__ void testSwap(MLMove64* g_move64, int numElems)
 			register MLMove64 mi = s_move64[i];
 			if(mi.cost < 0) {
 				register MLMove64 mx = s_move64[tx];
-				if(!f_canSwapMerge(mi, mx))
+				if(!def_canSwapMerge(mi, mx))
 					s_move64[tx].cost = 0;
 			}
 		}
@@ -156,10 +156,14 @@ MLKernel::mergeGPU() {
 
 		gpuOccupancyMaxPotentialBlockSizeVariableSMem(&minGridSize, &blockSize, testSwap, __cudaOccupancyB2DHelper(sMemSize), blockSizeLimit);
 
-		//printf("minGridSize=%d blockSize=%d moveElems=%d\n",minGridSize, blockSize, moveElems);
+		printf("minGridSize=%d blockSize=%d moveElems=%d\n",minGridSize, blockSize, moveElems);
 		//getchar();
 		//getchar();
-		block.x = blockSize;
+
+		//block.x = blockSize;
+		block.x = ::max(blockSize, moveElems);
+
+
 
 		testSwap<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
 		/*
@@ -579,7 +583,6 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
     }
     lprintf("\n");
     */
-    lprintf("edge(0,1) = %d\n", graphMerge.hasEdge(0,1));
 
 #if 0
     /*

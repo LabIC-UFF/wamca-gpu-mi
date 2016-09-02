@@ -223,9 +223,12 @@ public:
 	            kernel->recvResult();
 	            kernel->sync();
 
+	            /*
+	            lprintf("kernel GPU moves: ");
 	            for(unsigned i=0; i<kernel->moveElems;i++)
 	            	lprintf("%d\t",h_moves[i].cost);
 	            lprintf("\n");
+	            */
 
 	            movesCost = kernel->mergeGreedy(mergeBuffer,movesCount);
 	            impr = 0;
@@ -251,11 +254,13 @@ public:
 	            kernel->recvResult();
 	            kernel->sync();
 
+
 	            /*
+	            lprintf("MERGE_GPU moves: ");
 	            for(unsigned i=0; i<kernel->moveElems;i++)
 	            	lprintf("%d\t",h_moves[i].cost);
 	            lprintf("\n");
-	            */
+				*/
 
 				impr2 = 0;
 				countImpr2 = 0;
