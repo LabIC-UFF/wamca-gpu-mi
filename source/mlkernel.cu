@@ -412,7 +412,8 @@ MLKernel::init(bool solCreate)
      *  j   solution index j
      *  c   solution cost
      */
-    moveDataSize = solSize * sizeof(ullong);
+    //moveDataSize = solSize * sizeof(ullong);
+    moveDataSize = solSize * solSize * sizeof(ullong);
     gpuMalloc(&moveData,moveDataSize);
 
     transBufferSize = moveDataSize;

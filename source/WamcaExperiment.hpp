@@ -178,19 +178,16 @@ public:
 
 	    timeAvg = 0;
 	    for(uint m=0;m < 3; m++) {
-
 	        lprintf("***\n* Solution #%u\n***\n",m + 1);
 
 		    MLSolution* solDevice = new MLSolution(problem);
 	        solDevice->random(rng,0.50);
 	        solDevice->ldsUpdate();
 
-
 	        lprintf("random solution created!\n");
 	        solDevice->show(std::cout);
 
-
-	        //for(int k=MLMI_SWAP;k <= MLMI_OROPT3;k++) {
+	        lprintf("BEGIN PARTIAL - GPU-XPU\n");
 	        for(int k=0;k < kernelCount;k++) {
 	            kernel = kernels[k];
 	        	//lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
@@ -206,6 +203,116 @@ public:
 	            //lprintf("kernel solution sent!\n");
 	            kernel->defineKernelGrid(); // TODO: precisa??
 	            //lprintf("defined kernel grid!\n");
+
+	            //kernel->launchShowDataKernel(5, 32);
+	            //lprintf("printed data!\n");
+
+
+	            lprintf("launching kernel k=%d %s!\n",k,kernel->name);
+	            lprintf("kernel moveElems=%d!\n",kernel->moveElems);
+                start = std::clock();
+	            kernel->launchKernel();
+	            kernel->sync();
+	            duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
+	            printf("kernel time %.7f ms\n", duration);
+
+	            start = std::clock();
+	            // partial GPU-CPU
+	            kernel->recvResult();
+	            kernel->sync();
+
+	            /*
+	            lprintf("kernel GPU moves: ");
+	            for(unsigned i=0; i<kernel->moveElems;i++)
+	            	lprintf("%d\t",h_moves[i].cost);
+	            lprintf("\n");
+	            */
+
+	            movesCost = kernel->mergeGreedy(mergeBuffer,movesCount);
+	            impr = 0;
+	            countImpr = 0;
+	            for(unsigned iter=0; iter<movesCount; ++iter) {
+					move64ToMove(move, mergeBuffer[iter]);
+					if(move.cost < 0) {
+						impr += move.cost;
+						countImpr++;
+						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
+						kernel->applyMove(move);
+					}
+				}
+	            duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
+	            printf("partial GPU-CPU time %.7f ms\n", duration);
+	            printf("partial GPU-CPU improvement=%d count=%d moveCount=%d\n", impr, countImpr, movesCount);
+
+
+	            lprintf("kernel 2 moveElems=%d!\n",kernel->moveElems);
+	            start = std::clock();
+	            // partial GPU-GPU
+	            kernel->mergeGPU();
+	            //kernel->sync();
+	            kernel->recvResult();
+	            kernel->sync();
+
+
+	            /*
+	            lprintf("MERGE_GPU moves: ");
+	            for(unsigned i=0; i<kernel->moveElems;i++)
+	            	lprintf("%d\t",h_moves[i].cost);
+	            lprintf("\n");
+				*/
+
+				impr2 = 0;
+				countImpr2 = 0;
+				for (unsigned iter = 0; iter < kernel->moveElems; ++iter) {
+					move64ToMove(move, h_moves[iter]);
+					if (move.cost < 0) {
+						impr2 += move.cost;
+						countImpr2++;
+						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
+						kernel->applyMove(move);
+					}
+				}
+				duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
+				printf("partial GPU-GPU time %.7f ms\n", duration);
+				printf("partial GPU-GPU improvement=%d count=%d moveCount=%d\n", impr2, countImpr2, movesCount);
+
+
+				if((impr2==impr) && (countImpr == countImpr2)) {
+					lprintf("IMPR CHECKED OK!\n\n");
+				} else {
+					lprintf("IMPR ERROR! :( \n\n");
+					getchar();
+					getchar();
+				}
+
+
+
+	            l4printf("Cost improvement: %d --> %d = %d\n",
+	                            int(solDevice->cost),
+	                            int(kernel->solution->cost),
+	                            int(kernel->solution->cost) - int(solDevice->cost));
+	        }  // end for each kernel
+	        lprintf("END PARTIAL - GPU-XPU\n");
+	        lprintf("-----------------------------------------\n");
+
+	        lprintf("BEGIN TOTAL - GPU-XPU\n");
+	        for(int k=0;k < kernelCount;k++) {
+	            kernel = kernels[k];
+	        	//lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
+
+	            MLMove64* h_moves = kernel->transBuffer.p_move64;
+
+	            kernel->setSolution(solDevice);
+	            //lprintf("kernel solution set!\n");
+	            //kernel->solution->show(std::cout);
+	            //kernel->solution->ldsShow(std::cout);
+
+	            kernel->sendSolution();
+	            //lprintf("kernel solution sent!\n");
+	            kernel->defineKernelGrid(); // TODO: precisa??
+	            //lprintf("defined kernel grid!\n");
+
+	            kernel->moveElems *= kernel->moveElems; // TODO: versoes total precisam de mais memoria.. correto?
 
 	            //kernel->launchShowDataKernel(5, 32);
 	            //lprintf("printed data!\n");
