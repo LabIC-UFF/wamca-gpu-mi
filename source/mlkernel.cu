@@ -45,7 +45,23 @@ __forceinline__ __device__ bool f_canSwapMerge(MLMove64& m1, MLMove64& m2) {
 		       ( GPU_ABS(int(m1.j - m2.j)) > 1 );
 }
 
-//#define def_canSwapMerge(m1,m2) ( true )
+__forceinline__ __device__ bool f_can2OptMerge(MLMove64& m1, MLMove64& m2) {
+    return (m1.j < m2.i - 1) ||
+           (m1.i > m2.j + 1) ||
+           (m2.j < m1.i - 1) ||
+           (m2.i > m1.j + 1);
+}
+
+__forceinline__ __device__ bool f_canOrOptMerge(MLMove64& m1, MLMove64& m2) {
+    register int k1,min1,max1, k2,min2,max2;
+
+    MINMAX(m1.i,m1.j,min1,max1);
+    k1 = MLMI_OROPT_K(m1.id);
+    MINMAX(m2.i,m2.j,min2,max2);
+    k2 = MLMI_OROPT_K(m2.id);
+
+    return (max1 + k1 < min2) || (min1 > max2 + k2);
+}
 
 __global__ void testSwap(MLMove64* g_move64, int numElems)
 {
@@ -59,8 +75,8 @@ __global__ void testSwap(MLMove64* g_move64, int numElems)
 	//	return;
 	//}
 	s_move64[tx] = m;
-	if(s_move64[tx].cost >= 0)
-		return;
+	if(s_move64[tx].cost >= 0) // optional
+		return;                // optional
 	syncthreads();
 
 	for(int i=0; i<=tx; ++i) { // tx 'or' numElems (?) symmetry?
@@ -68,7 +84,7 @@ __global__ void testSwap(MLMove64* g_move64, int numElems)
 			register MLMove64 mi = s_move64[i];
 			if(mi.cost < 0) {
 				register MLMove64 mx = s_move64[tx];
-				if(!def_canSwapMerge(mi, mx))
+				if(!f_canSwapMerge(mi, mx))
 					s_move64[tx].cost = 0;
 			}
 		}
@@ -80,6 +96,79 @@ __global__ void testSwap(MLMove64* g_move64, int numElems)
 
 	// end kernel
 }
+
+
+__global__ void test2Opt(MLMove64* g_move64, int numElems)
+{
+	if(tx >= numElems)
+		return;
+	extern __shared__ MLMove64 s_move64[];
+
+	register MLMove64 m = g_move64[tx];
+	//if(m >= 0){
+	//	m.id = 1000; // giant value
+	//	return;
+	//}
+	s_move64[tx] = m;
+	if(s_move64[tx].cost >= 0) // optional
+		return;                // optional
+	syncthreads();
+
+	for(int i=0; i<=tx; ++i) { // tx 'or' numElems (?) symmetry?
+		if(i != tx) {
+			register MLMove64 mi = s_move64[i];
+			if(mi.cost < 0) {
+				register MLMove64 mx = s_move64[tx];
+				if(!f_can2OptMerge(mi, mx))
+					s_move64[tx].cost = 0;
+			}
+		}
+		syncthreads();
+	}
+
+	if(s_move64[tx].cost == 0)
+		g_move64[tx] = s_move64[tx];
+
+	// end kernel
+}
+
+
+__global__ void testOrOpt(MLMove64* g_move64, int numElems)
+{
+	if(tx >= numElems)
+		return;
+	extern __shared__ MLMove64 s_move64[];
+
+	register MLMove64 m = g_move64[tx];
+	//if(m >= 0){
+	//	m.id = 1000; // giant value
+	//	return;
+	//}
+	s_move64[tx] = m;
+	if(s_move64[tx].cost >= 0) // optional
+		return;                // optional
+	syncthreads();
+
+	for(int i=0; i<=tx; ++i) { // tx 'or' numElems (?) symmetry?
+		if(i != tx) {
+			register MLMove64 mi = s_move64[i];
+			if(mi.cost < 0) {
+				register MLMove64 mx = s_move64[tx];
+				if(!f_canOrOptMerge(mi, mx))
+					s_move64[tx].cost = 0;
+			}
+		}
+		syncthreads();
+	}
+
+	if(s_move64[tx].cost == 0)
+		g_move64[tx] = s_move64[tx];
+
+	// end kernel
+}
+
+
+
 
 // ################################################################################ //
 // ##                                                                            ## //
@@ -149,48 +238,54 @@ MLKernel::mergeGPU() {
 
        //printf("kernel_id=%d\n",this->id);
 
-	if (this->id == 0) // SWAP
-	{
+       /*
+    MLMI_SWAP,
+    MLMI_2OPT,
+    MLMI_OROPT1,
+    MLMI_OROPT2,
+    MLMI_OROPT3,
+        */
 		int minGridSize;
 		int blockSize;
 		size_t sMemSize = moveElems * sizeof(MLMove64);
 		int blockSizeLimit = moveElems;
 
+	switch (this->id)
+	{
+	case MLMI_SWAP:
 		gpuOccupancyMaxPotentialBlockSizeVariableSMem(&minGridSize, &blockSize, testSwap, __cudaOccupancyB2DHelper(sMemSize), blockSizeLimit);
-
 		//printf("minGridSize=%d blockSize=%d moveElems=%d\n",minGridSize, blockSize, moveElems);
-		//getchar();
-		//getchar();
 
 		//block.x = blockSize;
 		block.x = ::max(blockSize, moveElems);
 
-
-
 		testSwap<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
-		/*
-		gpuMemcpyAsync(transBuffer.p_void, moveData, moveElems * sizeof(MLMove64), cudaMemcpyDeviceToHost, stream);
-		MLMove64* p_pack = transBuffer.p_move64;
-		sync();
+		break;
+	case MLMI_2OPT:
+		gpuOccupancyMaxPotentialBlockSizeVariableSMem(&minGridSize, &blockSize, test2Opt, __cudaOccupancyB2DHelper(sMemSize), blockSizeLimit);
+		//printf("minGridSize=%d blockSize=%d moveElems=%d\n",minGridSize, blockSize, moveElems);
 
-		printf("SECOND PRINT!\n");
-		int count = 0;
-		for (unsigned i = 0; i < moveElems; i++)
-		{
-			printf("%d\t", p_pack[i].cost);
-			if (p_pack[i].cost < 0)
-				count++;
-		}
-		printf("\n");
-		printf("count negative=%d moveElems=%d\n", count, moveElems);
-		*/
+		//block.x = blockSize;
+		block.x = ::max(blockSize, moveElems);
+
+		test2Opt<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		break;
+	case MLMI_OROPT1:
+	case MLMI_OROPT2:
+	case MLMI_OROPT3:
+		gpuOccupancyMaxPotentialBlockSizeVariableSMem(&minGridSize, &blockSize, testOrOpt, __cudaOccupancyB2DHelper(sMemSize), blockSizeLimit);
+		//printf("minGridSize=%d blockSize=%d moveElems=%d\n",minGridSize, blockSize, moveElems);
+
+		//block.x = blockSize;
+		block.x = ::max(blockSize, moveElems);
+
+		testOrOpt<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		break;
+	default:
+		printf("NO KERNEL TO CALL.. YET!\n");
+		getchar();
 	}
-    else
-       {
-    	   printf("NO KERNEL TO CALL.. YET!\n");
-    	   getchar();
-       }
-       // TODO: djdiusdisjd
+	// TODO: djdiusdisjd
 
        //cudaOccupancyMaxPotentialBlockSizeVariableSMem(  // TODO:USE!
    }
@@ -434,7 +529,7 @@ canSwapMerge(MLMove64 *m1, MLMove64 *m2) // TODO: SWAP MERGE!
                ( (m1->i < min2 - 1) && (m1->j > max2 + k2) );
 
     }
-    return false;
+    //return false;
 }
 
 inline
@@ -456,7 +551,7 @@ can2OptMerge(MLMove64 *m1, MLMove64 *m2)
         k2 = MLMI_OROPT_K(m2->id);
         return (m1->i > max2 + k2) || (m1->j < min2 - 1);
     }
-    return false;
+    //return false;
 }
 
 inline
