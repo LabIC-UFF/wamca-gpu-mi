@@ -294,7 +294,7 @@ public:
 	                            int(solDevice->cost),
 	                            int(kernel->solution->cost),
 	                            int(kernel->solution->cost) - int(solDevice->cost));
-	        }
+	        }  // end for each kernel
 	        lprintf("-----------------------------------------\n");
 
 	    }

@@ -414,7 +414,6 @@ MLKernel::init(bool solCreate)
      */
     moveDataSize = solSize * sizeof(ullong);
     gpuMalloc(&moveData,moveDataSize);
-    gpuMalloc(&moveDataBackup,moveDataSize);
 
     transBufferSize = moveDataSize;
     gpuHostMalloc(&transBuffer.p_void,transBufferSize,0);//???gpuTask.params.allocFlags); TODO: fix
@@ -457,7 +456,6 @@ MLKernel::term()
 
     gpuFree(adsData);
     gpuFree(moveData);
-    gpuFree(moveDataBackup);
 
     gpuHostFree(transBuffer.p_void,0);//????gpuTask.params.allocFlags); TODO: fix
 

@@ -107,7 +107,6 @@ public:
     uint            adsRowElems;                    ///< Number of elements of an eval matrix row
 
     MLMovePack     *moveData;                       ///< Solution buffer
-    MLMovePack     *moveDataBackup;                 ///< Solution buffer (BACKUP)
     uint            moveDataSize;                   ///< Solution buffer size in bytes
     uint            moveElems;                      ///< Number of move elements
 
@@ -240,15 +239,6 @@ public:
        // Copy results from GPU
        gpuMemcpyAsync(transBuffer.p_void,moveData,moveElems * sizeof(MLMove64),cudaMemcpyDeviceToHost,stream);
    }
-
-    // DO BACKUP
-	void doBackup() {
-		gpuMemcpyAsync(moveDataBackup, moveData, moveElems * sizeof(MLMove64), cudaMemcpyDeviceToDevice, stream);
-	}
-	// UNDO BACKUP
-	void undoBackup() {
-		gpuMemcpyAsync(moveData, moveDataBackup, moveElems * sizeof(MLMove64), cudaMemcpyDeviceToDevice, stream);
-	}
 
 
    struct OBICmp {
