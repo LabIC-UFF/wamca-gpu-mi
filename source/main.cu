@@ -68,7 +68,8 @@ int main(int argc, char **argv)
 	//string instance_path = "./instances/04_lin318.tsp";
 	//string instance_path = "./instances/05_TRP-S500-R1.tsp";
 	//string instance_path = "./instances/06_d657.tsp";
-	string instance_path = "./instances/07_rat784.tsp";
+	//string instance_path = "./instances/07_rat784.tsp";
+	string instance_path = "./instances/08_TRP-S1000-R1.tsp";
 
 	//string instance_path = "./instances/08_TRP-S1000-R1.tsp";
 
