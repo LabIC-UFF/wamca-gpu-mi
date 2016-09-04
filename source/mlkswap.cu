@@ -281,6 +281,15 @@ kernelSwap(const MLADSData *gm_ads, MLMovePack *gm_move, int size)
             bcost = cost;
             bmove = GPU_MOVE_PACKID(i,j,MLMI_SWAP);
         }
+
+        /*
+        if((tx==283) && (by == 171))
+            kprintf("WWWW Block %d tx:%d bdim:%d ID %d: GPU_SWAP(%u,%u) = %d bcost=%d bmove=%d\n",
+            		by, tx, blockDim.x, by*blockDim.x+tx,
+                            i,
+                            j,
+                            cost, bcost, bmove);
+        */
     }
 
 //#undef  sm_ecost0
@@ -370,19 +379,6 @@ kernelSwapTotal(const MLADSData *gm_ads, MLMovePack *gm_move, int size)
     if(tx >= size)
         return;
 
-    /*
-     * Dynamic shared memory buffer usage
-     *
-     * buffer
-     * |
-     * v
-     * +--------+--------+-----------------+
-     * | coordx | coordy | movid | movcost |
-     * +--------+--------+-----------------+
-     *                   ^       ^
-     *                   |       |
-     *                   etime   ecost
-     */
 
     // Only thread 0 initializes shared variables
     if(tx == 0) {
@@ -456,6 +452,15 @@ kernelSwapTotal(const MLADSData *gm_ads, MLMovePack *gm_move, int size)
 
         cost = COST_INFTY;
 
+        /*
+        if((tx<=1) && (by < 10))
+            kprintf("YYYYY Block %d tx:%d bdim:%d ID %d: GPU_SWAP(%u,%u) = %d bcost=%d bmove=%d\n",
+            		by, tx, blockDim.x, by*blockDim.x+tx,
+                            i,
+                            j,
+                            cost, bcost, bmove);
+        */
+
         if((j > i + 1) && (j < size - sm_tour)) {
             // Last solution index
             n = size - 1;
@@ -528,19 +533,48 @@ kernelSwapTotal(const MLADSData *gm_ads, MLMovePack *gm_move, int size)
             cost = cost - sm_scost;
 
             k4printf("GPU_SWAP(%d,%d) = %d\n",i,j,cost);
-        }
+        } // if (j > i + 1)
+
+        /*
+        //if((tx<=1) && (bcost != COST_INFTY) && (by < 10))
+        //if((tx<=1) && (by < 10))
+        if((tx==283) && (by == 171))
+            kprintf("XXXX Block %d tx:%d bdim:%d ID %d: GPU_SWAP(%u,%u) = %d bcost=%d bmove=%d\n",
+            		by, tx, blockDim.x, by*blockDim.x+tx,
+                            i,
+                            j,
+                            cost, bcost, bmove);
+		*/
 
         if(cost < bcost) {
             bcost = cost;
             bmove = GPU_MOVE_PACKID(i,j,MLMI_SWAP);
         }
-    }
+
+    } // for c=0
 
 //#undef  sm_ecost0
 
     __syncthreads();
 
-    gm_move[by*blockDim.y+tx].w = GPU_MOVE_PACK64(bcost,bmove);
+    gm_move[by*blockDim.x+tx].w = GPU_MOVE_PACK64(bcost,bmove);
+
+    /*
+    if((tx<=1) && (bcost != COST_INFTY) && (by < 10))
+    kprintf("Block %d tx:%d bdim:%d ID %d: GPU_SWAP(%u,%u) = %d bcost=%d bmove=%d\n",
+    		by, tx, blockDim.x, by*blockDim.x+tx,
+                    gm_move[by*blockDim.x+tx].s.i,
+                    gm_move[by*blockDim.x+tx].s.j,
+                    gm_move[by*blockDim.x+tx].s.cost, bcost, bmove);
+
+    //if((tx<=1) && (bcost != COST_INFTY) && (by < 10))
+    if((tx==283) && (by == 171))
+    kprintf("Block %d tx:%d bdim:%d ID %d: GPU_SWAP(%u,%u) = %d bcost=%d bmove=%d\n",
+    		by, tx, blockDim.x, by*blockDim.x+tx,
+                    gm_move[by*blockDim.x+tx].s.i,
+                    gm_move[by*blockDim.x+tx].s.j,
+                    gm_move[by*blockDim.x+tx].s.cost, bcost, bmove);
+    */
 }
 
 

@@ -652,8 +652,29 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
     n = moveElems;
 #endif
 
+    lprintf("moveElems=%d\n",moveElems);
+
+	/*
+
+    if(isTotal) {
+    	i = 109723;
+    	lprintf("%d (%d,%d) %d\n", i, moves[i].i, moves[i].j, moves[i].cost);
+    				getchar();
+		for (i = 0; i < n; i++)
+		{
+			lprintf("%d (%d,%d) %d\n", i, moves[i].i, moves[i].j, moves[i].cost);
+			getchar();
+		}
+    }
+		*/
+
+
     // Sort moves
     sort(moves,moves + n,compMove);
+
+
+	i = 0;
+	lprintf("after sort %d (%d,%d) %d\n", i, moves[i].i, moves[i].j, moves[i].cost);
 
     /*
     // If first moves has no gain, or ONLY first move has gain, returns
@@ -678,7 +699,7 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
     n = ncount;
     // TODO: Grafo não suporta nós suficientes!! > 500000
     // TODO: fazer então mesma versão limitada da GPU!
-    n = ::min(1024,n);
+    //n = ::min(1024,n);
 
     graphMerge.resize(n);
 
@@ -696,7 +717,8 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
 
     // Set conflicts (edges)
     for(i=0;i < graphMerge.vertexCount;i++) {
-    	printf("id: %d  graphMerge.cost=%d\n",i, graphMerge[i]->cost);
+//    	if(this->id==0)
+//    		printf("id: %d (%d,%d)  graphMerge.cost=%d\n",i, graphMerge[i]->i, graphMerge[i]->j, graphMerge[i]->cost);
         for(j=i;j < graphMerge.vertexCount;j++) {
             if(!canMerge(graphMerge[i],graphMerge[j])){
 //            	lprintf("set_edge(%d,%d)\n",i,j);
@@ -742,10 +764,15 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
         merge[count] = *graphMerge[i];
         cost += graphMerge[i]->cost;
 
-        if(++count == maxMerge) {
+        ++count;
+        /*
+        if(count == maxMerge) {
             lprintf("maxMerge reached: %d\n",count);
+            getchar();
+            getchar();
             break;
         }
+        */
 
         graphMerge.setFlag(i,1);
 

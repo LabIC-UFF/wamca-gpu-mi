@@ -240,6 +240,7 @@ public:
 	        lprintf("random solution created!\n");
 	        solDevice->show(std::cout);
 
+
 	        lprintf("BEGIN PARTIAL - GPU-XPU\n");
 	        for(int k=0;k < kernelCount;k++) {
 	            MLKernel    *kernel = kernels[k];
@@ -350,6 +351,7 @@ public:
 
 
 	        getchar();
+
 
 
 	        lprintf("BEGIN TOTAL - GPU-XPU\n");
