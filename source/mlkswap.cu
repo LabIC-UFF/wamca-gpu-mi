@@ -452,15 +452,6 @@ kernelSwapTotal(const MLADSData *gm_ads, MLMovePack *gm_move, int size)
 
         cost = COST_INFTY;
 
-        /*
-        if((tx<=1) && (by < 10))
-            kprintf("YYYYY Block %d tx:%d bdim:%d ID %d: GPU_SWAP(%u,%u) = %d bcost=%d bmove=%d\n",
-            		by, tx, blockDim.x, by*blockDim.x+tx,
-                            i,
-                            j,
-                            cost, bcost, bmove);
-        */
-
         if((j > i + 1) && (j < size - sm_tour)) {
             // Last solution index
             n = size - 1;
@@ -535,17 +526,6 @@ kernelSwapTotal(const MLADSData *gm_ads, MLMovePack *gm_move, int size)
             k4printf("GPU_SWAP(%d,%d) = %d\n",i,j,cost);
         } // if (j > i + 1)
 
-        /*
-        //if((tx<=1) && (bcost != COST_INFTY) && (by < 10))
-        //if((tx<=1) && (by < 10))
-        if((tx==283) && (by == 171))
-            kprintf("XXXX Block %d tx:%d bdim:%d ID %d: GPU_SWAP(%u,%u) = %d bcost=%d bmove=%d\n",
-            		by, tx, blockDim.x, by*blockDim.x+tx,
-                            i,
-                            j,
-                            cost, bcost, bmove);
-		*/
-
         if(cost < bcost) {
             bcost = cost;
             bmove = GPU_MOVE_PACKID(i,j,MLMI_SWAP);
@@ -559,22 +539,7 @@ kernelSwapTotal(const MLADSData *gm_ads, MLMovePack *gm_move, int size)
 
     gm_move[by*blockDim.x+tx].w = GPU_MOVE_PACK64(bcost,bmove);
 
-    /*
-    if((tx<=1) && (bcost != COST_INFTY) && (by < 10))
-    kprintf("Block %d tx:%d bdim:%d ID %d: GPU_SWAP(%u,%u) = %d bcost=%d bmove=%d\n",
-    		by, tx, blockDim.x, by*blockDim.x+tx,
-                    gm_move[by*blockDim.x+tx].s.i,
-                    gm_move[by*blockDim.x+tx].s.j,
-                    gm_move[by*blockDim.x+tx].s.cost, bcost, bmove);
 
-    //if((tx<=1) && (bcost != COST_INFTY) && (by < 10))
-    if((tx==283) && (by == 171))
-    kprintf("Block %d tx:%d bdim:%d ID %d: GPU_SWAP(%u,%u) = %d bcost=%d bmove=%d\n",
-    		by, tx, blockDim.x, by*blockDim.x+tx,
-                    gm_move[by*blockDim.x+tx].s.i,
-                    gm_move[by*blockDim.x+tx].s.j,
-                    gm_move[by*blockDim.x+tx].s.cost, bcost, bmove);
-    */
 }
 
 

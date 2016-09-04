@@ -265,6 +265,190 @@ kernel2Opt(const MLADSData *gm_ads, MLMovePack *gm_move, const int size)
      }
 }
 
+
+__global__
+void
+kernel2OptTotal(const MLADSData *gm_ads, MLMovePack *gm_move, const int size)
+{
+    /*!
+     * Shared memory variables
+     */
+    extern
+    __shared__
+    int     sm_buffer[];        // Dynamic shared memory buffer
+
+    __shared__
+    int    *sm_coordx,          // Clients x-coordinates
+           *sm_coordy,          // Clients y-coordinates
+           *sm_move,            // Thread movement id/cost
+           *sm_time,            // ADS time
+           *sm_cost,            // ADS cost
+            sm_rsize,           // ADS row size
+            sm_scost,           // Solution cost
+            sm_tour;            // Tour/path
+    __shared__
+    float   sm_round;           // Round value
+    /*!
+     * Local memory variables
+     */
+    uint   *gm_data;            // Points to some ADS data
+    int     dist,               // Distance
+            cost,               // Solution cost
+            time,               // Travel time
+            wait,               // Wait
+            bcost,              // Best cost in chunk
+            bmove;              // Best move in chunk
+    int     c,                  // Chunk no
+            ctx,                // Tx index for chunk
+            cmax;               // Number of chunks
+    int     i,j,                // Movement indexes
+            n;                  // Last solution index
+
+    if(tx >= size)
+        return;
+
+    /*
+     * Dynamic shared memory buffer usage
+     *
+     * buffer
+     * |
+     * v
+     * +--------+--------+-----------------+
+     * | coordx | coordy | movid | movcost |
+     * +--------+--------+-----------------+
+     *                   ^       ^
+     *                   |       |
+     *                   time    cost
+     */
+
+    // Only thread 0 initializes shared variables
+    if(tx == 0) {
+        sm_coordx = sm_buffer;
+        sm_coordy = sm_coordx + size;
+        sm_move   = sm_coordy + size;
+
+        sm_time = sm_move;
+        sm_cost = sm_move + size;
+
+        sm_rsize = gm_ads->s.rowElems;
+        sm_scost = gm_ads->s.solCost;
+        sm_tour  = gm_ads->s.tour;
+        sm_round = gm_ads->s.round * 0.5F;
+    }
+    __syncthreads();
+
+    // Number of chunks
+    cmax  = GPU_DIVCEIL(size,blockDim.x);
+
+    /*
+     * Copy clients coordinates
+     */
+    gm_data = ADS_COORD_PTR(gm_ads);
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < size);c++) {
+        sm_coordx[ctx] = GPU_HI_USHORT(gm_data[ctx]);
+        sm_coordy[ctx] = GPU_LO_USHORT(gm_data[ctx]);
+    }
+    /*!
+     * Copy ADS.T
+     */
+    // Points to ADS.T
+    gm_data = ADS_TIME_PTR(gm_ads,sm_rsize);
+    // Copy ADS.T data
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < size);c++)
+        sm_time[ctx] = gm_data[ctx];
+    /*!
+     * Copy ADS.C
+     */
+    // Points to ADS.C
+    gm_data = ADS_COST_PTR(gm_ads,sm_rsize);
+    // Row C[0] from ADS
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < size);c++)
+        sm_cost[ctx] = gm_data[ctx];         // C[0]
+
+    // Wait all threads synchronize
+    __syncthreads();
+
+
+    // Best move/cost of chunk
+    bmove = 0;
+    bcost = COST_INFTY;
+
+     __syncthreads();
+
+     for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < size);c++) {
+
+         if(ctx < size - sm_tour - 2) {
+
+             n = (ctx >= by);
+
+             // Movement indexes
+             i = n*(ctx - by  + 1) + (!n)*(by - ctx);
+             j = n*(ctx + 2)       + (!n)*(size + !sm_tour - ctx - 2);
+
+             // Last solution index
+             n  = size - 1;
+
+             // Row C[j] from ADS
+             gm_data = ADS_COST_PTR(gm_ads,sm_rsize) +
+                       sm_rsize*j;
+
+             /*
+              * [0,i-1] + [j,i]
+              */
+             dist = GPU_DIST_COORD(i - 1,j);        // D[i-1,j]
+
+             wait  = j - i + 1;                     // W[j,i] = j - i + (j > 0)
+                                                    //        = j - i + 1
+             cost  = sm_cost[i - 1] +               // C[0,i-1]
+                     gm_data[i] +                   // C[j,i]
+                     wait * (                       // W[j,i]
+                     sm_time[i - 1] +               // T[0,i-1]
+                     dist );                        // D[i-1,j] = D[j,i-1]
+
+             time  = sm_time[i - 1] +               // T[0,i-1]
+                     GPU_ADS_TIME(i,j) +            // T[j,i] = T[i,j]
+                     dist;                          // D[i-1,j] = D[j,i-1]
+
+             /*
+              * [0,i-1] + [j,i] + [j+1,n]
+              */
+             if(j + 1 <= n) {
+
+                 // Line 'j + 1' from eval matrix
+                 gm_data = ADS_COST_PTR(gm_ads,sm_rsize) +
+                           sm_rsize*(j + 1);
+
+                 dist = GPU_DIST_COORD(i,j + 1);    // D[i,j+1]
+
+                 wait  = n - j;                     // W[j+1,n] = n - j - 1 + (j+1 > 0)
+                                                    //          = n - j - 1 + 1 = n - j
+                 cost += gm_data[n] +               // C[j+1,n]
+                         wait * (                   // W[j+1,n]
+                         time +                     // T([0,i-1] + [j,i])
+                         dist );                    // D[i,j+1] = D[j+1,i]
+             }
+
+             cost = cost - sm_scost;
+
+             if(cost < bcost) {
+                 bcost = cost;
+                 bmove = GPU_MOVE_PACKID(i,j,MLMI_2OPT);
+             }
+
+             k4printf("GPU_2OPT(%d,%d) = %d\n",i,j,cost);
+         }
+     }
+
+     __syncthreads();
+
+     gm_move[by*blockDim.x+tx].w = GPU_MOVE_PACK64(bcost,bmove);
+
+}
+
+
+
+
+
 #else
 
 /*
@@ -502,6 +686,9 @@ MLKernel2Opt::defineKernelGrid()
      */
     moveElems = grid.y;
 
+    if(isTotal)
+    	moveElems = grid.y*block.x;
+
     //if(problem.params.maxMerge)
     //    maxMerge = problem.params.maxMerge;
     //else
@@ -525,7 +712,10 @@ MLKernel2Opt::launchKernel()
     flagExec = true;
 
     // Calls kernel
-    kernel2Opt<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
+    if(!isTotal)
+    	kernel2Opt<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
+    else
+    	kernel2OptTotal<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
 }
 
 void

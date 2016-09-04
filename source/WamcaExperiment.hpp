@@ -242,7 +242,8 @@ public:
 
 
 	        lprintf("BEGIN PARTIAL - GPU-XPU\n");
-	        for(int k=0;k < kernelCount;k++) {
+	        //for(int k=0;k < kernelCount;k++) {
+	        for(int k=0;k < 3;k++) {
 	            MLKernel    *kernel = kernels[k];
 	        	//lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
 	            lprintf("initializing kernel %d with &kernel:%p %s TOTAL=%d\n", k, kernel, kernel->name, kernel->isTotal);
@@ -352,13 +353,14 @@ public:
 	        lprintf("-----------------------------------------\n");
 
 
-	        /*
-	        getchar();
+
+	        //getchar();
 
 
 
 	        lprintf("BEGIN TOTAL - GPU-XPU\n");
-	        for(int k=0;k < tkernelCount;k++) {
+	        //for(int k=0;k < tkernelCount;k++) {
+	        for(int k=0;k < 3;k++) {
 	        	MLKernel* tkernel = tkernels[k];
 	        	lprintf("initializing kernel %d with &tkernel:%p %s TOTAL=%d\n", k, tkernel, tkernel->name, tkernel->isTotal);
 
@@ -474,7 +476,7 @@ public:
 	        lprintf("-----------------------------------------\n");
 	        lprintf("END TOTAL\n");
 	        getchar();
-			*/
+
 	    }
 
 	    //delete solVnd;

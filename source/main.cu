@@ -63,8 +63,8 @@ int main(int argc, char **argv)
 	bool distRound = false;
 	bool coordShift = false;
 	//string instance_path = "./instances/01_berlin52.tsp";
-	//string instance_path = "./instances/02_kroD100.tsp";
-	string instance_path = "./instances/08_TRP-S1000-R1.tsp";
+	string instance_path = "./instances/02_kroD100.tsp";
+	//string instance_path = "./instances/08_TRP-S1000-R1.tsp";
 
 	MLProblem problem(costTour, distRound, coordShift);
 	problem.load(instance_path.c_str());

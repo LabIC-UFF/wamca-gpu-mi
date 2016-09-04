@@ -168,30 +168,12 @@ __global__ void testOrOpt(MLMove64* g_move64, int numElems)
 	// end kernel
 }
 
-__global__ void test2OptTotal(MLMove64* g_move64, int numElems)
-{
-	if(tx >= numElems)
-		return;
-	//extern __shared__ MLMove64 s_move64[];
+// ==================================== TOTAL ===================================
+// ==================================== TOTAL ===================================
+// ==================================== TOTAL ===================================
+// ==================================== TOTAL ===================================
+// ==================================== TOTAL ===================================
 
-	int cmax  = GPU_DIVCEIL(numElems,blockDim.x);
-	int c, ctx;
-
-	for(int i=0; i<=numElems; ++i) { // tx 'or' numElems (?) symmetry?
-		register MLMove64 mi = g_move64[i];
-		if(mi.cost < 0){
-			for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < numElems);++c)
-			if(ctx > i)
-			{
-				register MLMove64 mx = g_move64[ctx];
-				if(!f_can2OptMerge(mi, mx))
-					g_move64[ctx].cost = 0;
-			}
-		}
-		syncthreads();
-	}
-	// end kernel
-}
 
 __global__ void testSwapTotal(MLMove64* g_move64, int numElems)
 {
@@ -219,6 +201,59 @@ __global__ void testSwapTotal(MLMove64* g_move64, int numElems)
 }
 
 
+__global__ void test2OptTotal(MLMove64* g_move64, int numElems)
+{
+	if(tx >= numElems)
+		return;
+	//extern __shared__ MLMove64 s_move64[];
+
+	int cmax  = GPU_DIVCEIL(numElems,blockDim.x);
+	int c, ctx;
+
+	for(int i=0; i<=numElems; ++i) { // tx 'or' numElems (?) symmetry?
+		register MLMove64 mi = g_move64[i];
+		if(mi.cost < 0){
+			for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < numElems);++c)
+			if(ctx > i)
+			{
+				register MLMove64 mx = g_move64[ctx];
+				if(!f_can2OptMerge(mi, mx))
+					g_move64[ctx].cost = 0;
+			}
+		}
+		syncthreads();
+	}
+	// end kernel
+}
+
+
+__global__ void testOrOptTotal(MLMove64* g_move64, int numElems)
+{
+	if(tx >= numElems)
+		return;
+	//extern __shared__ MLMove64 s_move64[];
+
+	int cmax  = GPU_DIVCEIL(numElems,blockDim.x);
+	int c, ctx;
+
+	for(int i=0; i<=numElems; ++i) { // tx 'or' numElems (?) symmetry?
+		register MLMove64 mi = g_move64[i];
+		if(mi.cost < 0){
+			for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < numElems);++c)
+			if(ctx > i)
+			{
+				register MLMove64 mx = g_move64[ctx];
+				if(!f_canOrOptMerge(mi, mx))
+					g_move64[ctx].cost = 0;
+			}
+		}
+		syncthreads();
+	}
+	// end kernel
+}
+
+
+// ========================= GPU MERGE ALGORITHMS ===========================
 
 void
 MLKernel::mergeGPU() {
@@ -284,7 +319,13 @@ MLKernel::mergeGPU() {
 		//block.x = blockSize;
 		block.x = ::max(blockSize, moveElems);
 
-		test2Opt<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		if(!isTotal)
+			test2Opt<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		else{
+			block.x = ::min(1024,moveElems);
+			sMemSize = 0; // no shared memory
+			test2OptTotal<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		}
 		break;
 	case MLMI_OROPT1:
 	case MLMI_OROPT2:
@@ -295,7 +336,13 @@ MLKernel::mergeGPU() {
 		//block.x = blockSize;
 		block.x = ::max(blockSize, moveElems);
 
-		testOrOpt<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		if(!isTotal)
+			testOrOpt<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		else{
+			block.x = ::min(1024,moveElems);
+			sMemSize = 0; // no shared memory
+			testOrOptTotal<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		}
 		break;
 	default:
 		printf("NO KERNEL TO CALL.. YET!\n");
@@ -754,10 +801,11 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
         ncount++;
     }
 
-    n = ncount;
+    if(isTotal)
+    	n = ncount;
     // TODO: Grafo não suporta nós suficientes!! > 500000
     // TODO: fazer então mesma versão limitada da GPU!
-    n = ::min(1024,n);
+    //n = ::min(1024,n);
 
     graphMerge.resize(n);
 

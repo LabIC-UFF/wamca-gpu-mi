@@ -369,6 +369,264 @@ kernelOrOpt(const MLADSData *gm_ads, MLMovePack *gm_move, const int k, const int
 */
 }
 
+
+__global__
+void
+kernelOrOptTotal(const MLADSData *gm_ads, MLMovePack *gm_move, const int k, const int size)
+{
+    /*!
+     * Shared memory variables
+     */
+    extern
+    __shared__
+    int     sm_buffer[];        // Dynamic shared memory buffer
+
+    __shared__
+    int    *sm_coordx,          // Clients x-coordinates
+           *sm_coordy,          // Clients y-coordinates
+           *sm_move,            // Moves id/cost
+           *sm_time,            // ADS time
+           *sm_cost,            // ADS cost
+            sm_rsize,           // ADS row size
+            sm_scost,           // Solution cost
+            sm_tour,            // Tour/path
+            sm_lsize;           // Loop size
+    __shared__
+    float   sm_round;           // Round value
+    /*!
+     * Local memory variables
+     */
+    uint   *gm_data;            // Points to some ADS data
+    int     dist,               // Distance
+            cost,               // Solution cost
+            time,               // Travel time
+            wait,               // Wait
+            bcost,              // Best cost in chunk
+            bmove;              // Best move in chunk
+    int     c,                  // Chunk no
+            ctx,                // Tx index for chunk
+            cmax;               // Number of chunks
+    int     i,j,                // Movement indexes
+            n;                  // Last solution index
+
+    if(tx >= size)
+        return;
+
+    /*
+     * Dynamic shared memory buffer usage
+     *
+     * buffer
+     * |
+     * v
+     * +--------+--------+------+------+
+     * | coordx | coordy | time | cost |
+     * +--------+--------+------+------+
+     *                   ^
+     *                   |
+     *                   move
+     */
+    // Only thread 0 initializes shared variables
+    if(tx == 0) {
+        sm_coordx = sm_buffer;
+        sm_coordy = sm_coordx + size;
+        sm_time   = sm_coordy + size;
+        sm_cost   = sm_time   + size;
+        sm_move   = sm_time;
+
+        sm_rsize = gm_ads->s.rowElems;
+        sm_scost = gm_ads->s.solCost;
+        sm_tour  = gm_ads->s.tour;
+        sm_round = gm_ads->s.round * 0.5F;
+
+        sm_lsize = size - k + !sm_tour - 1;
+    }
+    __syncthreads();
+
+    if((k < 1) || (k > 3))
+        k4printf("ERROR k=%d\tsm_tour=%d\tsm_rsize=%d\n",k,sm_tour,sm_rsize);
+
+    // Number of chunks
+    cmax  = GPU_DIVCEIL(size,blockDim.x);
+
+    // Get clients coordinates
+    gm_data = ADS_COORD_PTR(gm_ads);
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < size);c++) {
+        sm_coordx[ctx] = GPU_HI_USHORT(gm_data[ctx]);
+        sm_coordy[ctx] = GPU_LO_USHORT(gm_data[ctx]);
+    }
+    /*!
+     * Copy ADS.T
+     */
+    // Points to ADS.T
+    gm_data = ADS_TIME_PTR(gm_ads,sm_rsize);
+
+    // Copy ADS.T data
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < size);c++)
+        sm_time[ctx] = gm_data[ctx];
+
+    /*!
+     * Copy ADS.C
+     */
+    // Row C[0] from ADS: columns 0 to by
+    gm_data = ADS_COST_PTR(gm_ads,sm_rsize);
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) <= by);c++)
+        sm_cost[ctx] = gm_data[ctx];         // C[0]
+
+    // Row C[by + k + 1] from ADS: columns by + k + 1 to N-T-1
+    n = size - by - k - sm_tour - 1;
+    i = by + k + 1;
+    gm_data = ADS_COST_PTR(gm_ads,sm_rsize) +
+             sm_rsize*i;
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) <= n);c++)
+        sm_cost[i + ctx] = gm_data[i + ctx]; // C[by + k + 1]
+
+    // Wait all threads synchronize
+    __syncthreads();
+
+    // Best move/cost of chunk
+    bmove = 0;
+    bcost = COST_INFTY;
+
+    n = size - 1;
+
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < sm_lsize);c++) {
+
+        // ###################### //
+        // ##      i < j       ## //
+        // ###################### //
+        if(ctx > by) {
+            i = by + 1;
+            j = ctx + 1;
+
+            /*
+             * [0,i-1] + [i+k,j+k-1]
+             */
+            dist = GPU_DIST_COORD(i - 1,i + k);     // D[i-1,i+k]
+
+            wait  = j - i;                          // W[i+k,j+k-1] = j + k - 1 - i - k + (i + k > 0)
+                                                    //              = j - i - 1 + 1 = j - i
+            cost  = sm_cost[i - 1] +                // C[0,i-1]
+                    sm_cost[j + k - 1] +            // C[i+k,j+k-1]
+                    wait * (                        // W[i+k,j+k-1]
+                    sm_time[i - 1] +                // T[0,i-1]
+                    dist );                         // D[i-1,i+k] = D[i+k,i-1]
+
+            time  = sm_time[i - 1] +                // T[0,i-1]
+                    GPU_ADS_TIME(i + k,j + k - 1) + // T[i+k,j+k-1]
+                    dist;                           // D[i-1,i+k] = D[i+k,i-1]
+            /*
+             * [0,i-1] + [i+k,j+k-1] + [i,i+k-1]
+             */
+            gm_data = ADS_COST_PTR(gm_ads,sm_rsize) +   // C[i]
+                      sm_rsize*i;
+
+            dist = GPU_DIST_COORD(j + k - 1,i);     // D[j+k-1,i]
+
+            wait = k;                               //  W[i,i+k-1] = i + k - 1 - i + (i > 0)
+                                                    //             = k - 1 + 1 = k
+            cost += gm_data[i + k - 1] +            // C[i,i+k-1]
+                    wait * (                        // W[i,i+k-1]
+                    time +                          // T([0,i-1] + [i+k,j+k-1])
+                    dist );                         // D[j+k-1,i] = D[i,j+k-1]
+
+            time += GPU_ADS_TIME(i,i + k - 1) +     // T[i,i+k-1]
+                    dist;                           // D[j+k-1,i] = D[i,j+k-1]
+
+            /*
+             * [0,i-1] + [i+k,j+k-1] + [i,i+k-1] + [j+k,n]
+             */
+            if(j + k <= n) {
+                gm_data = ADS_COST_PTR(gm_ads,sm_rsize) +  // C[j+k]
+                          sm_rsize*(j + k);
+
+                dist = GPU_DIST_COORD(i + k - 1,j + k);    // D[i+k-1,j+k]
+
+                wait  = n - j - k + 1;              // W[j+k,n] = n - j - k + (j+k > 0)
+                                                    //          = n - j - k + 1
+                cost += gm_data[n] +                // C[j+k,n]
+                        wait * (                    // W[j+k,n]
+                        time +                      // T([0,i-1] + [i+k,j+k-1] + [i,i+k-1])
+                        dist );                     // D[i+k-1,j+k] = D[j+k,i+k-1]
+            }
+        }
+        // ###################### //
+        // ##      i > j      ## //
+        // ###################### //
+        else {
+            i = by  + 2;
+            j = ctx + 1;
+
+            /*
+             * [0,j-1] + [i,i+k-1]
+             */
+            gm_data = ADS_COST_PTR(gm_ads,sm_rsize) +   // C[i]
+                      sm_rsize*i;
+
+            dist  = GPU_DIST_COORD(j - 1,i);        // D[j-1,i]
+
+            wait  = k;                              // W[i,i+k-1] = i + k - 1 - i + (i > 0)
+                                                    //            = k - 1 + 1 = k
+            cost  = sm_cost[j - 1] +                // C[0,j-1]
+                    gm_data[i + k - 1] +            // C[i,i+k-1]
+                    wait * (                        // W[i,i+k-1]
+                    sm_time[j - 1] +                // T[0,j-1]
+                    dist);                          // D[j-1,i] = D[i,j-1]
+
+            time  = sm_time[j - 1] +                // T[0,j-1]
+                    GPU_ADS_TIME(i,i + k - 1) +     // T[i,i + k - 1]
+                    dist;                           // D[j-1,i] = D[i,j-1]
+            /*
+             * [0,j-1] + [i,i+k-1] + [j,i-1]
+             */
+            gm_data = ADS_COST_PTR(gm_ads,sm_rsize) +   // C[j]
+                      sm_rsize*j;
+
+            dist = GPU_DIST_COORD(i + k - 1,j);     // D[i+k-1,j]
+
+            wait  = i - j;                          // W[j,i-1] = i - 1 - j + (j > 0)
+                                                    //          = i - j - 1 + 1 = i - j
+            cost += gm_data[i - 1] +                // C[j,i-1]
+                    wait * (                        // W[j,i-1]
+                    time +                          // T([0,j-1] + [i,i+k-1])
+                    dist );                         // D[i+k-1,j] = D[j,i+k-1]
+
+            time += GPU_ADS_TIME(j,i - 1) +         // T[j,i-1]
+                    dist;                           // D[i+k-1,j] = D[j,i+k-1]
+            /*
+             * [0,j-1] + [i,i+k-1] + [j,i-1] + [i+k,n]
+             */
+            if(i + k <= n) {
+                gm_data = ADS_COST_PTR(gm_ads,sm_rsize) +   // C[i+k]
+                          sm_rsize*(i + k);
+
+                dist = GPU_DIST_COORD(i - 1,i + k);         // D[i-1,i+k]
+
+                wait  = n - i - k + 1;             // W[i+k,n] = n - i - k + (i+k > 0)
+
+                cost += gm_data[n] +               // C[i+k,n]
+                        wait * (                   // W[i+k,n]
+                        time +                     // T([0,i-1] + [i+k,j+k-1] + [i,i+k-1])
+                        dist);                     // D[i-1,i+k] = D[i+k,i-1]
+            }
+        }
+
+        cost = cost - sm_scost;
+
+        if(cost < bcost) {
+            bcost = cost;
+            bmove = GPU_MOVE_PACKID(i,j,MLMI_OROPT(k));
+        }
+
+        k4printf("GPU_OROPT%u(%d,%d) = %d\n",k,i,j,cost);
+    }
+
+    __syncthreads();
+
+    gm_move[by*blockDim.x+tx].w = GPU_MOVE_PACK64(bcost,bmove);
+
+}
+
+
 #else
 
 /*
@@ -617,6 +875,9 @@ MLKernelOrOpt::defineKernelGrid()
      */
     moveElems = grid.y;
 
+    if(isTotal)
+    	moveElems = grid.y*block.x;
+
     //if(problem.params.maxMerge)
     //    maxMerge = problem.params.maxMerge;
     //else
@@ -643,7 +904,10 @@ MLKernelOrOpt::launchKernel()
     flagExec = true;
 
     // Calls kernel
-    kernelOrOpt<<<grid,block,shared,stream>>>(adsData,moveData,tag,solSize);
+    if(!isTotal)
+    	kernelOrOpt<<<grid,block,shared,stream>>>(adsData,moveData,tag,solSize);
+    else
+    	kernelOrOptTotal<<<grid,block,shared,stream>>>(adsData,moveData,tag,solSize);
 }
 
 void
