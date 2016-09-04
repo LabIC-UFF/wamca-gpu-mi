@@ -268,6 +268,8 @@ public:
 
 	            lprintf("launching kernel k=%d %s!\n",k,kernel->name);
 	            lprintf("kernel moveElems=%d!\n",kernel->moveElems);
+	            gpuMemset(kernel->moveData, 0, kernel->moveDataSize);
+	            gpuDeviceSynchronize();
                 start = std::clock();
 	            kernel->launchKernel();
 	            kernel->sync();
@@ -382,6 +384,7 @@ public:
 	            lprintf("launching kernel k=%d %s!\n",k,tkernel->name);
 	            lprintf("kernel moveElems=%d!\n",tkernel->moveElems);
 	            gpuMemset(tkernel->moveData, 0, tkernel->moveDataSize);
+	            gpuDeviceSynchronize();
                 start = std::clock();
 	            tkernel->launchKernel();
 	            tkernel->sync();

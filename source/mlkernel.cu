@@ -699,7 +699,7 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
     n = ncount;
     // TODO: Grafo não suporta nós suficientes!! > 500000
     // TODO: fazer então mesma versão limitada da GPU!
-    //n = ::min(1024,n);
+    n = ::min(1024,n);
 
     graphMerge.resize(n);
 
@@ -763,6 +763,7 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
 
         merge[count] = *graphMerge[i];
         cost += graphMerge[i]->cost;
+        lprintf("choose %s(%d,%d) = %d\n", this->name, graphMerge[i]->i, graphMerge[i]->j, graphMerge[i]->cost);
 
         ++count;
         /*
