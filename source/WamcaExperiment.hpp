@@ -42,6 +42,10 @@ public:
 	uint            kernelCount;                ///< Number of kernels
 	uint            kernelBits;                 ///< Bit mask for active kernels
 
+	MLKernel       *tkernels[MLP_MAX_NEIGHBOR];  ///< Kernel searches
+	uint            tkernelCount;                ///< Number of kernels
+	uint            tkernelBits;                 ///< Bit mask for active kernels
+
 
 	ullong          lsCall;                     ///< Local search call no.
 
@@ -50,6 +54,7 @@ public:
 	MLSolution     *solAux;                     ///< Aux solution
 
 	MLMove64       *mergeBuffer;                ///< Independent movements buffer
+	MLMove64       *tmergeBuffer;                ///< Independent movements buffer
 
 
 	ullong          timeExec;                   ///<< Exec time
@@ -85,13 +90,97 @@ public:
 	    kernelCount = 0;
 	    memset(kernels,0,sizeof(kernels));
 
+	    tkernelCount = 0;
+	    memset(tkernels,0,sizeof(tkernels));
+
 	    timeExec = 0;
 	    timeIdle = 0;
 	    timeSync = 0;
 
 	    // Move merge buffer
 	    mergeBuffer = new MLMove64[problem.size];
+
+	    tmergeBuffer = new MLMove64[problem.size*problem.size];
 	}
+
+
+	void kernelInit()
+	{
+	    l4printf("GPU%u: kernelAdd, count=%u\n", gpuId, kernelCount);
+
+		for (int i = 0; i < MLP_MAX_NEIGHBOR; i++)
+		{
+			if (kernels[i])
+			{
+				printf("ERRO!\n");
+				delete kernels[i];
+			}
+			kernels[i] = NULL;
+		}
+
+		kernelCount = 0;
+		for (int kid = 0; kid < MLP_MAX_NEIGHBOR; kid++)
+		{
+			switch (kid)
+			{
+			case MLMI_SWAP:
+				kernels[kernelCount++] = new MLKernelSwap(problem);
+				break;
+			case MLMI_2OPT:
+				kernels[kernelCount++] = new MLKernel2Opt(problem);
+				break;
+			case MLMI_OROPT1:
+				kernels[kernelCount++] = new MLKernelOrOpt(problem, 1);
+				break;
+			case MLMI_OROPT2:
+				kernels[kernelCount++] = new MLKernelOrOpt(problem, 2);
+				break;
+			case MLMI_OROPT3:
+				kernels[kernelCount++] = new MLKernelOrOpt(problem, 3);
+				break;
+			default:
+				EXCEPTION("Invalid move id: %d", kid);
+			}
+		}
+
+		// TOTAL kernels
+		for (int i = 0; i < MLP_MAX_NEIGHBOR; i++)
+		{
+			if (tkernels[i])
+			{
+				printf("ERRO!\n");
+				delete tkernels[i];
+			}
+			tkernels[i] = NULL;
+		}
+
+		tkernelCount = 0;
+		for (int kid = 0; kid < MLP_MAX_NEIGHBOR; kid++)
+		{
+			switch (kid)
+			{
+			case MLMI_SWAP:
+				tkernels[tkernelCount++] = new MLKernelSwap(problem, true); // true = TOTAL
+				break;
+			case MLMI_2OPT:
+				tkernels[tkernelCount++] = new MLKernel2Opt(problem, true);
+				break;
+			case MLMI_OROPT1:
+				tkernels[tkernelCount++] = new MLKernelOrOpt(problem, 1, true);
+				break;
+			case MLMI_OROPT2:
+				tkernels[tkernelCount++] = new MLKernelOrOpt(problem, 2, true);
+				break;
+			case MLMI_OROPT3:
+				tkernels[tkernelCount++] = new MLKernelOrOpt(problem, 3, true);
+				break;
+			default:
+				EXCEPTION("Invalid move id: %d", kid);
+			}
+		}
+
+	}
+
 
 	void initDevice()
 	{
@@ -111,57 +200,21 @@ public:
 	    l4printf("GPU%u (%s)\n",gpuId,gpuProps.name);
 
 	    // Initialize kernel
-	    l4printf("GPU%u, initializing %d kernels\n",gpuId,kernelCount);
-	    for(int i=0;i < kernelCount;i++) {
-	        l4printf("GPU%u, initializing kernel %s\n",gpuId,kernels[i]->name);
-	        kernels[i]->init(true);//(flag);
-	    }
+		lprintf("GPU%u, initializing %d kernels\n", gpuId, kernelCount);
+		for (int i = 0; i < kernelCount; i++)
+			kernels[i]->init(true);
+
+		lprintf("GPU%u, initializing %d tkernels\n", gpuId, tkernelCount);
+		for (int i = 0; i < tkernelCount; i++)
+			tkernels[i]->init(true);
+
 	}
-
-	void kernelInit()
-	{
-	    l4printf("GPU%u: kernelAdd, count=%u\n", gpuId, kernelCount);
-
-	    for(int i=0;i < MLP_MAX_NEIGHBOR;i++) {
-	        if(kernels[i]) {
-	        	printf("ERRO!\n");
-	            delete kernels[i];
-	        }
-	        kernels[i] = NULL;
-	    }
-
-	    kernelCount = 0;
-	    for(int kid=0;kid < MLP_MAX_NEIGHBOR;kid++) {
-	            switch(kid) {
-	            case MLMI_SWAP:
-	                kernels[kernelCount++] = new MLKernelSwap(problem);
-	                break;
-	            case MLMI_2OPT:
-	                kernels[kernelCount++] = new MLKernel2Opt(problem);
-	                break;
-	            case MLMI_OROPT1:
-	                kernels[kernelCount++] = new MLKernelOrOpt(problem,1);
-	                break;
-	            case MLMI_OROPT2:
-	                kernels[kernelCount++] = new MLKernelOrOpt(problem,2);
-	                break;
-	            case MLMI_OROPT3:
-	                kernels[kernelCount++] = new MLKernelOrOpt(problem,3);
-	                break;
-	            default:
-	                EXCEPTION("Invalid move id: %d",kid);
-	            }
-	   	}
-	}
-
-
 
 
 	void runWAMCA2016()
 	{
 		lprintf("BEGIN WAMCA 2016 Experiments\n");
 
-	    MLKernel    *kernel;
 	    //MLSolution  *solVnd;
 	    MLMove       move;
 	    uint         i,max;
@@ -189,10 +242,14 @@ public:
 
 	        lprintf("BEGIN PARTIAL - GPU-XPU\n");
 	        for(int k=0;k < kernelCount;k++) {
-	            kernel = kernels[k];
+	            MLKernel    *kernel = kernels[k];
 	        	//lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
+	            lprintf("initializing kernel %d with &kernel:%p %s TOTAL=%d\n", k, kernel, kernel->name, kernel->isTotal);
+
 
 	            MLMove64* h_moves = kernel->transBuffer.p_move64;
+
+	            lprintf("&h_moves=%p\n", h_moves);
 
 	            kernel->setSolution(solDevice);
 	            //lprintf("kernel solution set!\n");
@@ -221,12 +278,10 @@ public:
 	            kernel->recvResult();
 	            kernel->sync();
 
-	            /*
-	            lprintf("kernel GPU moves: ");
-	            for(unsigned i=0; i<kernel->moveElems;i++)
-	            	lprintf("%d\t",h_moves[i].cost);
-	            lprintf("\n");
-	            */
+//	            lprintf("kernel GPU moves: ");
+//	            for(unsigned i=0; i<kernel->moveElems;i++)
+//	            	lprintf("%d\t",h_moves[i].cost);
+//	            lprintf("\n");
 
 	            movesCost = kernel->mergeGreedy(mergeBuffer,movesCount);
 	            impr = 0;
@@ -237,7 +292,7 @@ public:
 						impr += move.cost;
 						countImpr++;
 						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
-						kernel->applyMove(move);
+						//kernel->applyMove(move);
 					}
 				}
 	            duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
@@ -254,12 +309,10 @@ public:
 	            kernel->sync();
 
 
-	            /*
-	            lprintf("MERGE_GPU moves: ");
-	            for(unsigned i=0; i<kernel->moveElems;i++)
-	            	lprintf("%d\t",h_moves[i].cost);
-	            lprintf("\n");
-				*/
+//	            lprintf("MERGE_GPU moves: ");
+//	            for(unsigned i=0; i<kernel->moveElems;i++)
+//	            	lprintf("%d\t",h_moves[i].cost);
+//	            lprintf("\n");
 
 				impr2 = 0;
 				countImpr2 = 0;
@@ -269,7 +322,7 @@ public:
 						impr2 += move.cost;
 						countImpr2++;
 						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
-						kernel->applyMove(move);
+						//kernel->applyMove(move);
 					}
 				}
 				duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
@@ -295,50 +348,57 @@ public:
 	        lprintf("END PARTIAL - GPU-XPU\n");
 	        lprintf("-----------------------------------------\n");
 
+
+	        getchar();
+
+
 	        lprintf("BEGIN TOTAL - GPU-XPU\n");
-	        for(int k=0;k < kernelCount;k++) {
-	            kernel = kernels[k];
-	        	//lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
+	        for(int k=0;k < tkernelCount;k++) {
+	        	MLKernel* tkernel = tkernels[k];
+	        	lprintf("initializing kernel %d with &tkernel:%p %s TOTAL=%d\n", k, tkernel, tkernel->name, tkernel->isTotal);
 
-	            MLMove64* h_moves = kernel->transBuffer.p_move64;
+	        	lprintf("&tkernel->transBuffer=%p\n", tkernel->transBuffer);
 
-	            kernel->setSolution(solDevice);
-	            //lprintf("kernel solution set!\n");
+	            MLMove64* h_moves = tkernel->transBuffer.p_move64;
+
+	            lprintf("&h_moves=%p\n", h_moves);
+
+	            tkernel->setSolution(solDevice);
+	            lprintf("tkernel solution set!\n");
 	            //kernel->solution->show(std::cout);
 	            //kernel->solution->ldsShow(std::cout);
 
-	            kernel->sendSolution();
+	            tkernel->sendSolution();
 	            //lprintf("kernel solution sent!\n");
-	            kernel->defineKernelGrid(); // TODO: precisa??
+	            tkernel->defineKernelGrid(); // TODO: precisa??
 	            //lprintf("defined kernel grid!\n");
-
-	            kernel->moveElems *= kernel->moveElems; // TODO: versoes total precisam de mais memoria.. correto?
 
 	            //kernel->launchShowDataKernel(5, 32);
 	            //lprintf("printed data!\n");
 
 
-	            lprintf("launching kernel k=%d %s!\n",k,kernel->name);
-	            lprintf("kernel moveElems=%d!\n",kernel->moveElems);
+	            lprintf("launching kernel k=%d %s!\n",k,tkernel->name);
+	            lprintf("kernel moveElems=%d!\n",tkernel->moveElems);
+	            gpuMemset(tkernel->moveData, 0, tkernel->moveDataSize);
                 start = std::clock();
-	            kernel->launchKernel();
-	            kernel->sync();
+	            tkernel->launchKernel();
+	            tkernel->sync();
 	            duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
 	            printf("kernel time %.7f ms\n", duration);
 
 	            start = std::clock();
 	            // partial GPU-CPU
-	            kernel->recvResult();
-	            kernel->sync();
+	            tkernel->recvResult();
+	            tkernel->sync();
+	            lprintf("GOT RESULT OF %d ELEMS\n", tkernel->moveElems);
 
-	            /*
-	            lprintf("kernel GPU moves: ");
-	            for(unsigned i=0; i<kernel->moveElems;i++)
-	            	lprintf("%d\t",h_moves[i].cost);
-	            lprintf("\n");
-	            */
+//	            lprintf("kernel GPU moves: ");
+//	            for(unsigned i=0; i<kernel->moveElems;i++)
+//	            	lprintf("%d\t",h_moves[i].cost);
+//	            lprintf("\n");
 
-	            movesCost = kernel->mergeGreedy(mergeBuffer,movesCount);
+
+	            movesCost = tkernel->mergeGreedy(mergeBuffer,movesCount);
 	            impr = 0;
 	            countImpr = 0;
 	            for(unsigned iter=0; iter<movesCount; ++iter) {
@@ -346,22 +406,22 @@ public:
 					if(move.cost < 0) {
 						impr += move.cost;
 						countImpr++;
-						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
-						kernel->applyMove(move);
+						l4printf("tApply %s(%d,%d) = %d\n", tkernel->name, move.i, move.j, move.cost);
+						tkernel->applyMove(move);
 					}
 				}
 	            duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
-	            printf("partial GPU-CPU time %.7f ms\n", duration);
-	            printf("partial GPU-CPU improvement=%d count=%d moveCount=%d\n", impr, countImpr, movesCount);
+	            printf("total GPU-CPU time %.7f ms\n", duration);
+	            printf("total GPU-CPU improvement=%d count=%d moveCount=%d\n", impr, countImpr, movesCount);
 
 
-	            lprintf("kernel 2 moveElems=%d!\n",kernel->moveElems);
+	            lprintf("tkernel 2 moveElems=%d!\n",tkernel->moveElems);
 	            start = std::clock();
 	            // partial GPU-GPU
-	            kernel->mergeGPU();
+	            tkernel->mergeGPU();
 	            //kernel->sync();
-	            kernel->recvResult();
-	            kernel->sync();
+	            tkernel->recvResult();
+	            tkernel->sync();
 
 
 	            /*
@@ -373,18 +433,18 @@ public:
 
 				impr2 = 0;
 				countImpr2 = 0;
-				for (unsigned iter = 0; iter < kernel->moveElems; ++iter) {
+				for (unsigned iter = 0; iter < tkernel->moveElems; ++iter) {
 					move64ToMove(move, h_moves[iter]);
 					if (move.cost < 0) {
 						impr2 += move.cost;
 						countImpr2++;
-						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
-						kernel->applyMove(move);
+						l4printf("tApply %s(%d,%d) = %d\n", tkernel->name, move.i, move.j, move.cost);
+						tkernel->applyMove(move);
 					}
 				}
 				duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
-				printf("partial GPU-GPU time %.7f ms\n", duration);
-				printf("partial GPU-GPU improvement=%d count=%d moveCount=%d\n", impr2, countImpr2, movesCount);
+				printf("total GPU-GPU time %.7f ms\n", duration);
+				printf("total GPU-GPU improvement=%d count=%d moveCount=%d\n", impr2, countImpr2, movesCount);
 
 
 				if((impr2==impr) && (countImpr == countImpr2)) {
@@ -399,10 +459,15 @@ public:
 
 	            l4printf("Cost improvement: %d --> %d = %d\n",
 	                            int(solDevice->cost),
-	                            int(kernel->solution->cost),
-	                            int(kernel->solution->cost) - int(solDevice->cost));
+	                            int(tkernel->solution->cost),
+	                            int(tkernel->solution->cost) - int(solDevice->cost));
+
+	            lprintf("finished this kernel\n");
+	            getchar();
 	        }  // end for each kernel
 	        lprintf("-----------------------------------------\n");
+	        lprintf("END TOTAL\n");
+	        getchar();
 
 	    }
 

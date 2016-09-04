@@ -324,6 +324,227 @@ kernelSwap(const MLADSData *gm_ads, MLMovePack *gm_move, int size)
     }
 }
 
+
+__global__
+void
+kernelSwapTotal(const MLADSData *gm_ads, MLMovePack *gm_move, int size)
+{
+    /*!
+     * Shared memory variables
+     */
+    extern
+    __shared__
+    int     sm_buffer[];        // Dynamic shared memory buffer
+
+    /*!
+     * Shared variables
+     */
+    __shared__
+    int    *sm_coordx,          // Clients x-coordinates
+           *sm_coordy,          // Clients y-coordinates
+           *sm_move,            // Thread movement id/cost
+           *sm_time,            // ADS time
+           *sm_cost,            // ADS cost
+            sm_rsize,           // ADS row size
+            sm_scost,           // Solution cost
+            sm_tour,            // Tour/path
+            sm_cost0;           // ADS cost element
+    __shared__
+    float   sm_round;           // Round value
+    /*!
+     * Local memory variables
+     */
+    uint   *gm_data;            // Points to some ADS data
+    int     dist,               // Distance
+            cost,               // Solution cost
+            time,               // Travel time
+            wait,               // Wait
+            bcost,              // Best cost in chunk
+            bmove;              // Best move in chunk
+    int     c,                  // Chunk no
+            ctx,                // Tx index for chunk
+            cmax;               // Number of chunks
+    int     i,j,                // Movement indexes
+            n;                  // Last solution index
+
+    if(tx >= size)
+        return;
+
+    /*
+     * Dynamic shared memory buffer usage
+     *
+     * buffer
+     * |
+     * v
+     * +--------+--------+-----------------+
+     * | coordx | coordy | movid | movcost |
+     * +--------+--------+-----------------+
+     *                   ^       ^
+     *                   |       |
+     *                   etime   ecost
+     */
+
+    // Only thread 0 initializes shared variables
+    if(tx == 0) {
+        sm_rsize = gm_ads->s.rowElems;
+        sm_scost = gm_ads->s.solCost;
+        sm_tour  = gm_ads->s.tour;
+        sm_round = gm_ads->s.round * 0.5F;
+
+        //sm_coordx = sm_buffer + 2; -- was like this in 2016-05-08
+        sm_coordx = sm_buffer;
+        sm_coordy = sm_coordx + size;
+        sm_move   = sm_coordy + size;
+
+        sm_time = sm_move;
+        sm_cost = sm_move + size;
+
+        // Row 0 from ADS: needs only column i - 1
+        gm_data = ADS_COST_PTR(gm_ads,sm_rsize);
+        sm_cost0 = gm_data[by];
+    }
+    __syncthreads();
+
+    // Number of chunks
+    cmax  = GPU_DIVCEIL(size,blockDim.x);
+
+    /*
+     * Copy clients coordinates
+     */
+    gm_data = ADS_COORD_PTR(gm_ads);
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < size);c++) {
+        // Split coordinates
+        sm_coordx[ctx] = GPU_HI_USHORT(gm_data[ctx]);
+        sm_coordy[ctx] = GPU_LO_USHORT(gm_data[ctx]);
+    }
+    /*!
+     * Copy ADS.T
+     */
+    // Points to ADS.T
+    gm_data = ADS_TIME_PTR(gm_ads,sm_rsize);
+
+    // Copy ADS.T data
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < size);c++)
+        sm_time[ctx] = gm_data[ctx];
+    /*!
+     * Copy ADS.C
+     */
+    // Points to ADS.C
+    gm_data = ADS_COST_PTR(gm_ads,sm_rsize);
+
+    // Row i + 1 from ADS
+    n = (by + 2) * sm_rsize;
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < size);c++)
+        sm_cost[ctx] = gm_data[n + ctx];             // C[i+1]
+
+    // Row 0 from ADS: needs only column i - 1
+    if(tx == 0)
+        sm_cost0 = gm_data[by];                      // C[0,i-1]
+
+    // Wait all threads synchronize
+    __syncthreads();
+
+    bmove = 0;
+    bcost = COST_INFTY;
+
+
+    for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < size);c++) {
+
+        // Movement indexes
+        i = by + 1;
+        j = ctx;
+
+        cost = COST_INFTY;
+
+        if((j > i + 1) && (j < size - sm_tour)) {
+            // Last solution index
+            n = size - 1;
+
+            /*
+             * [0,i-1] + [j,j]
+             */
+            dist = GPU_DIST_COORD(i - 1,j);     // D[i-1,j]
+
+            // wait = 1;                        // W[j,j]   = j - j + (j > 0)
+                                                //          = 1
+            cost = sm_cost0 +                   // C[0,i-1]
+                   0 +                          // C[j,j] = 0
+                   1 * (                        // W[j,j] = 1
+                   sm_time[i - 1] +             // T[0,i-1]
+                   dist );                      // D[i-1,j]
+
+            time = sm_time[i - 1] +             // T[0,i-1]
+                   0 +                          // T[j,j] = 0
+                   dist;                        // D[i-1,j]
+
+            /*
+             * [0,i-1] + [j,j] + [i+1,j-1]
+             */
+            dist = GPU_DIST_COORD(j,i + 1);     // D[j,i+1]
+
+            wait  = j - i - 1;                  // W[i+1,j-1] = j - 1 - i - 1 + (i+1 > 0)
+                                                //            = j - i - 2 + 1 = j - i - 1
+            cost += sm_cost[j - 1] +            // C[i+1,j-1]
+                    wait * (                    // W[i+1,j-1]
+                    time +                      // T([0,i-1] + [j,j])
+                    dist );                     // D[j,i+1]
+
+            time += GPU_ADS_TIME(i + 1,j - 1) + // T[i+1,j-1]
+                    dist;                       // D[j,i+1]
+
+            /*
+             * [0,i-1] + [j,j] + [i+1,j-1] + [i,i]
+             */
+            dist = GPU_DIST_COORD(j - 1,i);     // D[j-1,i]
+
+            // wait  = 1;                       // W[i,i] = i - i + (i > 0)
+                                                //        = 0 + 1 = 1
+            cost += 0 +                         // C[i,i] = 0
+                    1 * (                       // W[i,i] = 1
+                    time +                      // T([0,i-1] + [j,j] + [i+1,j-1])
+                    dist );                     // D[j-1,i]
+
+            time += 0 +                         // T[i,i] = 0
+                    dist;                       // D[j-1,i]
+
+            /*
+             * [0,i-1] + [j,j] + [i+1,j-1] + [i,i] + [j+1,n]
+             */
+            if(j + 1 <= n) {
+                // Row j + 1 from ADS: needs only column n
+                gm_data = ADS_COST_PTR(gm_ads,sm_rsize) +
+                       sm_rsize*(j + 1);
+
+                dist = GPU_DIST_COORD(i,j + 1);    // D[i,j+1]
+
+                wait  = n - j;                     // W[j+1,n] = n - j - 1 + (j+1 > 0)
+                                                   //          = n - j - 1 + 1 = n - j
+                cost += gm_data[n] +               // C[j+1,n]
+                        wait * (                   // W[j+1,n]
+                        time +                     // T([0,i-1] + [j,j] + [i+1,j-1] + [i,i])
+                        dist );                    // D[i,j+1]
+            }
+
+            cost = cost - sm_scost;
+
+            k4printf("GPU_SWAP(%d,%d) = %d\n",i,j,cost);
+        }
+
+        if(cost < bcost) {
+            bcost = cost;
+            bmove = GPU_MOVE_PACKID(i,j,MLMI_SWAP);
+        }
+    }
+
+//#undef  sm_ecost0
+
+    __syncthreads();
+
+    gm_move[by*blockDim.y+tx].w = GPU_MOVE_PACK64(bcost,bmove);
+}
+
+
+
 #else
 
 /*
@@ -542,6 +763,9 @@ MLKernelSwap::defineKernelGrid()
      */
     moveElems = grid.y;
 
+    if(isTotal)
+    	moveElems = grid.y*block.x;
+
     //if(problem.params.maxMerge)
     //    maxMerge = problem.params.maxMerge;
     //else
@@ -573,7 +797,10 @@ MLKernelSwap::launchKernel()
     lprintf("adsData=%p\n",adsData);
 
     // Calls kernel
-    kernelSwap<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
+    if(!isTotal)
+    	kernelSwap<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
+    else
+    	kernelSwapTotal<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
     gpuDeviceSynchronize();
 }
 

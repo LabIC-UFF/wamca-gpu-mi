@@ -29,7 +29,7 @@ public:
     /*!
      * Create a MLSwapKernelTask instance.
      */
-    MLKernelSwap(MLProblem &_problem) : MLKernel(_problem,MLMI_SWAP) {
+    MLKernelSwap(MLProblem &_problem, bool isTotal = false) : MLKernel(_problem, isTotal, MLMI_SWAP) {
     }
     /*!
      * Define kernel launching grid

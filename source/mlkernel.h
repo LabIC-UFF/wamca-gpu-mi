@@ -127,6 +127,8 @@ public:
     uint            imprvCount;                     ///< Number of improvements
     ullong          timeMove;                       ///< Time spent processing moves
 
+    bool isTotal;
+
 private:
     /*!
      * Reset class fields.
@@ -139,7 +141,7 @@ public:
      * Create a MLKernelTask instance.
      */
     //MLKernel(MLGPUTask &parent, int kid, uint ktag = 0);
-    MLKernel(MLProblem& _problem, int kid,  uint ktag = 0);
+    MLKernel(MLProblem& _problem, bool _isTotal, int kid,  uint ktag = 0);
     /*!
      * Destroy a MLKernelTask instance.
      */

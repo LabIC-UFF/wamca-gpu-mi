@@ -168,48 +168,6 @@ __global__ void testOrOpt(MLMove64* g_move64, int numElems)
 }
 
 
-
-
-// ################################################################################ //
-// ##                                                                            ## //
-// ##                                  DATA TYPES                                ## //
-// ##                                                                            ## //
-// ################################################################################ //
-
-// ################################################################################ //
-// ##                                                                            ## //
-// ##                                GLOBAL VARIABLES                            ## //
-// ##                                                                            ## //
-// ################################################################################ //
-
-// ################################################################################ //
-// ##                                                                            ## //
-// ##                              CLASS MLKernelTask                            ## //
-// ##                                                                            ## //
-// ################################################################################ //
-
-MLKernel::MLKernel(MLProblem& _problem, int kid, uint ktag) :
-                problem(_problem)
-{
-    id   = kid;
-    tag  = ktag;
-    name = nameMove[kid];
-
-    callCount = 0;
-    mergeCount = 0;
-    imprvCount = 0;
-    timeMove = 0;
-
-    reset(); // adsData = NULL, etc...
-}
-
-MLKernel::~MLKernel()
-{
-    if(stream)
-        term();
-}
-
-
 void
 MLKernel::mergeGPU() {
    	   thrust::device_ptr<MLMovePack> td_moveData(moveData);
@@ -288,7 +246,51 @@ MLKernel::mergeGPU() {
 	// TODO: djdiusdisjd
 
        //cudaOccupancyMaxPotentialBlockSizeVariableSMem(  // TODO:USE!
-   }
+}
+
+
+
+// ################################################################################ //
+// ##                                                                            ## //
+// ##                                  DATA TYPES                                ## //
+// ##                                                                            ## //
+// ################################################################################ //
+
+// ################################################################################ //
+// ##                                                                            ## //
+// ##                                GLOBAL VARIABLES                            ## //
+// ##                                                                            ## //
+// ################################################################################ //
+
+// ################################################################################ //
+// ##                                                                            ## //
+// ##                              CLASS MLKernelTask                            ## //
+// ##                                                                            ## //
+// ################################################################################ //
+
+MLKernel::MLKernel(MLProblem& _problem, bool _isTotal, int kid, uint ktag) :
+                problem(_problem), isTotal(_isTotal)
+{
+    id   = kid;
+    tag  = ktag;
+    name = nameMove[kid];
+
+    lprintf("MLKernel id=%d TOTAL=%d\n", kid, isTotal);
+
+    callCount = 0;
+    mergeCount = 0;
+    imprvCount = 0;
+    timeMove = 0;
+
+    reset(); // adsData = NULL, etc...
+}
+
+MLKernel::~MLKernel()
+{
+    if(stream)
+        term();
+}
+
 
 void
 MLKernel::reset()
@@ -328,12 +330,13 @@ MLKernel::reset()
 void
 MLKernel::init(bool solCreate)
 {
-    size_t  free,
+    lprintf("Kernel INIT: %s TOTAL:%d\n",name, isTotal);
+
+	size_t  free,
             size;
 
     int gpuId = 0; // TODO: fix
 
-    l4printf("Kernel %d: %s\n",gpuId,name);
 
     // Kernel solution
     //solBase = new MLSolution(problem,cudaHostAllocDefault);
@@ -412,18 +415,28 @@ MLKernel::init(bool solCreate)
      *  j   solution index j
      *  c   solution cost
      */
-    //moveDataSize = solSize * sizeof(ullong);
-    moveDataSize = solSize * solSize * sizeof(ullong);
-    gpuMalloc(&moveData,moveDataSize);
-
+    if(!isTotal)
+    	moveDataSize = solSize * sizeof(ullong);
+    else
+    	moveDataSize = solSize * solSize * sizeof(ullong);
     transBufferSize = moveDataSize;
+
+    gpuMalloc(&moveData,moveDataSize);
     gpuHostMalloc(&transBuffer.p_void,transBufferSize,0);//???gpuTask.params.allocFlags); TODO: fix
+
 
     // Define kernel grid
     defineKernelGrid();
 
     // Move merge graph
-    graphMerge.resize(solSize);
+    if(!isTotal)
+    	graphMerge.resize(solSize);
+    else
+    	graphMerge.resize(solSize); // TODO: make solSize*solSize
+
+    lprintf("transBuffer size%d\n", moveDataSize);
+    lprintf("transBuffer Pointer %p\n",transBuffer);
+    //getchar();
 
 #if LOG_LEVEL > 4
     lprintf("<<< kernel %s\n",name);
@@ -654,20 +667,41 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
 
     // Assign moves to graph
     graphMerge.clear();
+
+    int ncount = 0;
+    for(i=0;i < n;i++) {
+        if(moves[i].cost >= 0)
+            break;
+        ncount++;
+    }
+
+    n = ncount;
+    // TODO: Grafo não suporta nós suficientes!! > 500000
+    // TODO: fazer então mesma versão limitada da GPU!
+    n = ::min(1024,n);
+
+    graphMerge.resize(n);
+
+    // end assign moves
+
     for(i=0;i < n;i++) {
 #ifndef MLP_MERGE_SPLIT
         if(moves[i].cost >= 0)
             break;
 #endif
         graphMerge.addVertex(moves + i,0);
+        //printf("id: %d  graphMerge.cost=%d\n",i, graphMerge[i]->cost);
     }
     lprintf("Graph  %d/%d %s moves\n",graphMerge.vertexCount,n,name);
 
     // Set conflicts (edges)
     for(i=0;i < graphMerge.vertexCount;i++) {
+    	printf("id: %d  graphMerge.cost=%d\n",i, graphMerge[i]->cost);
         for(j=i;j < graphMerge.vertexCount;j++) {
-            if(!canMerge(graphMerge[i],graphMerge[j]))
+            if(!canMerge(graphMerge[i],graphMerge[j])){
+//            	lprintf("set_edge(%d,%d)\n",i,j);
             	graphMerge.setEdge(i,j);
+            }
         }
     }
 

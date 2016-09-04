@@ -29,7 +29,7 @@ public:
     /*!
      * Create a MLSwapKernelTask instance.
      */
-    MLKernelOrOpt(MLProblem &_problem, uint tag) : MLKernel(_problem,MLMI_OROPT(tag),tag) {
+    MLKernelOrOpt(MLProblem &_problem, uint tag, bool isTotal = false) : MLKernel(_problem, isTotal, MLMI_OROPT(tag),tag) {
     }
     /*!
      * Define kernel launching grid
