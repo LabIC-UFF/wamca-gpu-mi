@@ -801,8 +801,14 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
         ncount++;
     }
 
-    if(isTotal)
+    if(isTotal) {
     	n = ncount;
+    	if(n > 120000) {
+    		n = 120000;
+    		printf("WARNING: LIMIT OF 120000 MOVES EXCEEDED FOR CPU GRAPH!\n");
+    		printf("WARNING: THE GPU-GPU WILL PROBABLY RETURN A DIFFERENT (MORE PRECISE) VALUE THAN THIS GPU-CPU\n");
+    	}
+    }
     // TODO: Grafo não suporta nós suficientes!! > 500000
     // TODO: fazer então mesma versão limitada da GPU!
     //n = ::min(1024,n);

@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 	problem.load(instance_path.c_str());
 
 
-	int seed = 100; // 0: random
+	int seed = 500; // 0: random
 	WAMCAExperiment exper(problem, seed);
 	exper.runWAMCA2016();
 

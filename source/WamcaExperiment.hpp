@@ -458,9 +458,9 @@ public:
 				if((impr2==impr) && (countImpr == countImpr2)) {
 					lprintf("IMPR CHECKED OK!\n\n");
 				} else {
-					lprintf("IMPR ERROR! :( \n\n");
-					getchar();
-					getchar();
+					lprintf("IMPR CHECK ERROR! :( \n\n");
+					//getchar();
+					//getchar();
 				}
 
 
@@ -471,11 +471,11 @@ public:
 	                            int(tkernel->solution->cost) - int(solDevice->cost));
 
 	            lprintf("finished this kernel\n");
-	            getchar();
+	            //getchar();
 	        }  // end for each kernel
 	        lprintf("-----------------------------------------\n");
 	        lprintf("END TOTAL\n");
-	        getchar();
+	        //getchar();
 
 	    }
 
