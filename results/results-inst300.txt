@@ -1,0 +1,446 @@
+GPU ok!
+GPU0
+set seed 100
+MLKernel id=0 TOTAL=0
+MLKernel id=1 TOTAL=0
+MLKernel id=2 TOTAL=0
+MLKernel id=3 TOTAL=0
+MLKernel id=4 TOTAL=0
+MLKernel id=0 TOTAL=1
+MLKernel id=1 TOTAL=1
+MLKernel id=2 TOTAL=1
+MLKernel id=3 TOTAL=1
+MLKernel id=4 TOTAL=1
+GPU0, initializing 5 kernels
+Kernel INIT: SWAP TOTAL:0
+graph resize to 319
+transBuffer size2552
+transBuffer Pointer 0x203600000
+Kernel INIT: 2OPT TOTAL:0
+graph resize to 319
+transBuffer size2552
+transBuffer Pointer 0x203600a00
+Kernel INIT: OROPT1 TOTAL:0
+graph resize to 319
+transBuffer size2552
+transBuffer Pointer 0x203601400
+Kernel INIT: OROPT2 TOTAL:0
+graph resize to 319
+transBuffer size2552
+transBuffer Pointer 0x203601e00
+Kernel INIT: OROPT3 TOTAL:0
+graph resize to 319
+transBuffer size2552
+transBuffer Pointer 0x203602800
+GPU0, initializing 5 tkernels
+Kernel INIT: SWAP TOTAL:1
+graph resize to 319
+transBuffer size814088
+transBuffer Pointer 0x203700000
+Kernel INIT: 2OPT TOTAL:1
+graph resize to 319
+transBuffer size814088
+transBuffer Pointer 0x203800000
+Kernel INIT: OROPT1 TOTAL:1
+graph resize to 319
+transBuffer size814088
+transBuffer Pointer 0x203900000
+Kernel INIT: OROPT2 TOTAL:1
+graph resize to 319
+transBuffer size814088
+transBuffer Pointer 0x203a00000
+Kernel INIT: OROPT3 TOTAL:1
+graph resize to 319
+transBuffer size814088
+transBuffer Pointer 0x203b00000
+BEGIN WAMCA 2016 Experiments
+RAND_SEED	: 100
+***
+* Solution #1
+***
+random solution created!
+<0,112,258,146,116,15,131,171,179,185,170,268,252,157,178,272,244,317,155,45,53,115,10,36,3,17,62,60,59,189,98,29,92,33,144,209,167,127,159,174,257,248,294,239,158,230,279,191,307,198,259,283,302,301,206,173,73,26,7,2,129,212,261,117,124,122,153,183,199,310,166,51,50,195,42,103,81,203,65,202,156,281,201,52,69,38,163,152,72,91,85,184,34,1,64,197,187,79,80,133,136,242,216,160,55,21,28,77,90,47,93,96,192,289,148,207,241,232,145,182,200,82,27,67,63,180,292,273,264,223,139,168,276,304,99,305,280,193,71,57,119,141,314,288,231,225,265,176,177,125,237,213,240,132,238,254,236,221,13,154,161,12,56,61,32,105,234,126,22,58,83,43,94,285,287,138,121,143,137,164,291,270,253,165,135,140,108,107,150,312,267,308,284,169,311,250,224,217,286,247,274,219,226,149,196,41,44,102,120,23,24,172,54,87,186,266,204,233,260,245,275,296,220,227,246,309,147,46,16,31,30,316,39,74,181,75,5,114,106,162,113,313,290,188,277,190,271,278,222,263,109,208,8,40,84,104,6,134,211,110,229,118,256,282,235,303,249,142,293,295,194,151,300,97,205,130,262,35,66,14,315,20,175,95,9,37,49,68,100,123,19,48,76,306,251,215,25,4,111,210,255,228,218,269,298,128,243,18,70,89,86,78,11,101,88,299,297,214,0> = 56128921 (TOUR)
+BEGIN PARTIAL - GPU-XPU
+initializing kernel 0 with &kernel:0x1329bd0 SWAP TOTAL=0
+&h_moves=0x203600000
+launching kernel k=0 SWAP!
+kernel moveElems=315!
+Calling kernel SWAP
+Kernel SWAP	grid(1,315,1)	blck(288,1,1)	shared=5104 (4 KB)	size=319
+adsData=0x500fa0000
+kernel time 0.4280000 ms
+moveElems=315
+after sort 0 (32,122) -1304137
+graph resize to 315
+Graph  309/315 SWAP moves
+partial GPU-CPU time 0.3320000 ms
+partial GPU-CPU improvement=-15594375 count=45 moveCount=45
+kernel 2 moveElems=315!
+partial GPU-GPU time 0.8840000 ms
+partial GPU-GPU improvement=-15594375 count=45 moveCount=45
+IMPR CHECKED OK!
+
+initializing kernel 1 with &kernel:0x1329ce0 2OPT TOTAL=0
+&h_moves=0x203600a00
+launching kernel k=1 2OPT!
+kernel moveElems=160!
+kernel time 0.2290000 ms
+moveElems=160
+after sort 0 (31,32) -834534
+graph resize to 160
+Graph  160/160 2OPT moves
+partial GPU-CPU time 0.1470000 ms
+partial GPU-CPU improvement=-4147995 count=7 moveCount=7
+kernel 2 moveElems=160!
+partial GPU-GPU time 0.1260000 ms
+partial GPU-GPU improvement=-4147995 count=7 moveCount=7
+IMPR CHECKED OK!
+
+initializing kernel 2 with &kernel:0x1329df0 OROPT1 TOTAL=0
+&h_moves=0x203601400
+launching kernel k=2 OROPT1!
+kernel moveElems=316!
+kernel time 0.4620000 ms
+moveElems=316
+after sort 0 (31,23) -1107189
+graph resize to 316
+Graph  311/316 OROPT1 moves
+partial GPU-CPU time 0.4520000 ms
+partial GPU-CPU improvement=-5622201 count=11 moveCount=11
+kernel 2 moveElems=316!
+partial GPU-GPU time 0.5010000 ms
+partial GPU-GPU improvement=-5622201 count=11 moveCount=11
+IMPR CHECKED OK!
+
+END PARTIAL - GPU-XPU
+-----------------------------------------
+BEGIN TOTAL - GPU-XPU
+initializing kernel 0 with &tkernel:0x13c5600 SWAP TOTAL=1
+&tkernel->transBuffer=0x203700000
+&h_moves=0x203700000
+tkernel solution set!
+launching kernel k=0 SWAP!
+kernel moveElems=90720!
+Calling kernel SWAP
+Kernel SWAP	grid(1,315,1)	blck(288,1,1)	shared=5104 (4 KB)	size=319
+adsData=0x501304600
+kernel time 0.3380000 ms
+GOT RESULT OF 90720 ELEMS
+moveElems=90720
+after sort 0 (32,122) -1304137
+graph resize to 7424
+Graph  7424/7424 SWAP moves
+total GPU-CPU time 170.5590000 ms
+total GPU-CPU improvement=-19450864 count=62 moveCount=62
+tkernel 2 moveElems=90720!
+total GPU-GPU time 48.5470000 ms
+total GPU-GPU improvement=-19450864 count=62 moveCount=62
+IMPR CHECKED OK!
+
+finished this kernel
+
+initializing kernel 1 with &tkernel:0x13c5710 2OPT TOTAL=1
+&tkernel->transBuffer=0x203800000
+&h_moves=0x203800000
+tkernel solution set!
+launching kernel k=1 2OPT!
+kernel moveElems=46080!
+kernel time 0.1870000 ms
+GOT RESULT OF 46080 ELEMS
+moveElems=46080
+after sort 0 (31,32) -834534
+graph resize to 4927
+Graph  4927/4927 2OPT moves
+total GPU-CPU time 125.5480000 ms
+total GPU-CPU improvement=-7659418 count=23 moveCount=23
+tkernel 2 moveElems=46080!
+total GPU-GPU time 24.1670000 ms
+total GPU-GPU improvement=-7659418 count=23 moveCount=23
+IMPR CHECKED OK!
+
+finished this kernel
+
+initializing kernel 2 with &tkernel:0x13c5820 OROPT1 TOTAL=1
+&tkernel->transBuffer=0x203900000
+&h_moves=0x203900000
+tkernel solution set!
+launching kernel k=2 OROPT1!
+kernel moveElems=70784!
+kernel time 0.3900000 ms
+GOT RESULT OF 70784 ELEMS
+moveElems=70784
+after sort 0 (31,23) -1107189
+graph resize to 17912
+Graph  17912/17912 OROPT1 moves
+total GPU-CPU time 2154.9430000 ms
+total GPU-CPU improvement=-7473826 count=26 moveCount=26
+tkernel 2 moveElems=70784!
+total GPU-GPU time 35.9560000 ms
+total GPU-GPU improvement=-7473826 count=26 moveCount=26
+IMPR CHECKED OK!
+
+finished this kernel
+
+-----------------------------------------
+END TOTAL
+
+***
+* Solution #2
+***
+random solution created!
+<0,50,168,147,250,247,150,125,141,164,274,215,130,253,306,142,217,259,109,313,140,228,231,159,89,94,83,74,101,171,174,187,49,110,151,263,277,270,198,285,166,181,73,126,24,112,15,75,186,157,265,246,238,122,254,302,232,145,224,144,120,51,56,76,190,185,169,242,170,233,220,292,260,117,146,65,156,286,301,69,98,90,161,139,283,310,240,278,249,244,223,154,54,134,129,124,312,262,287,226,114,119,163,196,85,20,52,8,1,13,106,31,44,38,68,153,19,162,199,86,203,308,87,202,288,266,314,179,41,35,6,128,127,14,158,17,188,67,47,37,61,32,84,135,43,29,315,9,88,133,107,111,258,131,219,118,121,229,143,268,291,281,230,108,16,30,42,10,53,28,25,182,97,205,46,26,70,177,137,256,208,62,197,289,209,138,248,165,155,103,79,11,66,148,80,95,55,99,195,191,264,149,57,152,178,189,82,193,77,45,175,100,183,284,227,113,2,48,4,239,218,214,212,276,303,176,104,173,64,201,136,316,78,5,221,225,293,305,200,295,300,298,180,279,237,34,132,7,3,172,39,58,206,96,294,241,272,304,299,252,282,234,251,235,290,273,255,271,309,194,184,63,160,18,167,36,23,40,92,33,27,60,93,72,71,81,105,236,216,116,257,222,275,261,280,204,192,267,296,317,213,207,22,102,12,115,123,245,210,59,91,307,297,311,243,269,211,21,0> = 60167541 (TOUR)
+BEGIN PARTIAL - GPU-XPU
+initializing kernel 0 with &kernel:0x1329bd0 SWAP TOTAL=0
+&h_moves=0x203600000
+launching kernel k=0 SWAP!
+kernel moveElems=315!
+Calling kernel SWAP
+Kernel SWAP	grid(1,315,1)	blck(288,1,1)	shared=5104 (4 KB)	size=319
+adsData=0x500fa0000
+kernel time 0.4780000 ms
+moveElems=315
+after sort 0 (55,86) -1370752
+graph resize to 315
+Graph  302/315 SWAP moves
+partial GPU-CPU time 1.2200000 ms
+partial GPU-CPU improvement=-16427474 count=39 moveCount=39
+kernel 2 moveElems=315!
+partial GPU-GPU time 1.3650000 ms
+partial GPU-GPU improvement=-16427474 count=39 moveCount=39
+IMPR CHECKED OK!
+
+initializing kernel 1 with &kernel:0x1329ce0 2OPT TOTAL=0
+&h_moves=0x203600a00
+launching kernel k=1 2OPT!
+kernel moveElems=160!
+kernel time 0.2560000 ms
+moveElems=160
+after sort 0 (179,306) -1144242
+graph resize to 160
+Graph  160/160 2OPT moves
+partial GPU-CPU time 0.4850000 ms
+partial GPU-CPU improvement=-2135464 count=2 moveCount=2
+kernel 2 moveElems=160!
+partial GPU-GPU time 0.2540000 ms
+partial GPU-GPU improvement=-2135464 count=2 moveCount=2
+IMPR CHECKED OK!
+
+initializing kernel 2 with &kernel:0x1329df0 OROPT1 TOTAL=0
+&h_moves=0x203601400
+launching kernel k=2 OROPT1!
+kernel moveElems=316!
+kernel time 0.4690000 ms
+moveElems=316
+after sort 0 (14,37) -789380
+graph resize to 316
+Graph  312/316 OROPT1 moves
+partial GPU-CPU time 1.3040000 ms
+partial GPU-CPU improvement=-5157776 count=11 moveCount=11
+kernel 2 moveElems=316!
+partial GPU-GPU time 0.9460000 ms
+partial GPU-GPU improvement=-5157776 count=11 moveCount=11
+IMPR CHECKED OK!
+
+END PARTIAL - GPU-XPU
+-----------------------------------------
+BEGIN TOTAL - GPU-XPU
+initializing kernel 0 with &tkernel:0x13c5600 SWAP TOTAL=1
+&tkernel->transBuffer=0x203700000
+&h_moves=0x203700000
+tkernel solution set!
+launching kernel k=0 SWAP!
+kernel moveElems=90720!
+Calling kernel SWAP
+Kernel SWAP	grid(1,315,1)	blck(288,1,1)	shared=5104 (4 KB)	size=319
+adsData=0x501304600
+kernel time 0.3740000 ms
+GOT RESULT OF 90720 ELEMS
+moveElems=90720
+after sort 0 (55,86) -1370752
+graph resize to 8939
+Graph  8939/8939 SWAP moves
+total GPU-CPU time 273.1300000 ms
+total GPU-CPU improvement=-23440530 count=64 moveCount=64
+tkernel 2 moveElems=90720!
+total GPU-GPU time 48.1550000 ms
+total GPU-GPU improvement=-23440530 count=64 moveCount=64
+IMPR CHECKED OK!
+
+finished this kernel
+
+initializing kernel 1 with &tkernel:0x13c5710 2OPT TOTAL=1
+&tkernel->transBuffer=0x203800000
+&h_moves=0x203800000
+tkernel solution set!
+launching kernel k=1 2OPT!
+kernel moveElems=46080!
+kernel time 0.2070000 ms
+GOT RESULT OF 46080 ELEMS
+moveElems=46080
+after sort 0 (179,306) -1144242
+graph resize to 9982
+Graph  9982/9982 2OPT moves
+total GPU-CPU time 512.2300000 ms
+total GPU-CPU improvement=-2442339 count=4 moveCount=4
+tkernel 2 moveElems=46080!
+total GPU-GPU time 23.7640000 ms
+total GPU-GPU improvement=-2442339 count=4 moveCount=4
+IMPR CHECKED OK!
+
+finished this kernel
+
+initializing kernel 2 with &tkernel:0x13c5820 OROPT1 TOTAL=1
+&tkernel->transBuffer=0x203900000
+&h_moves=0x203900000
+tkernel solution set!
+launching kernel k=2 OROPT1!
+kernel moveElems=70784!
+kernel time 0.3970000 ms
+GOT RESULT OF 70784 ELEMS
+moveElems=70784
+after sort 0 (14,37) -789380
+graph resize to 21317
+Graph  21317/21317 OROPT1 moves
+total GPU-CPU time 3205.3120000 ms
+total GPU-CPU improvement=-6746198 count=17 moveCount=17
+tkernel 2 moveElems=70784!
+total GPU-GPU time 35.7070000 ms
+total GPU-GPU improvement=-6746198 count=17 moveCount=17
+IMPR CHECKED OK!
+
+finished this kernel
+
+-----------------------------------------
+END TOTAL
+
+***
+* Solution #3
+***
+random solution created!
+<0,146,37,103,56,30,65,181,81,71,9,29,21,82,188,45,43,19,26,151,42,36,18,182,101,70,193,175,55,144,33,176,158,266,192,203,155,145,231,114,46,134,107,313,224,277,309,165,137,17,104,168,208,241,233,113,25,48,54,95,97,135,178,138,132,15,51,128,265,225,211,121,262,256,156,162,264,250,235,220,166,253,284,300,303,183,204,314,148,136,259,185,301,248,252,209,140,169,198,261,216,106,157,120,268,187,77,85,91,126,7,34,315,163,61,149,41,124,142,116,39,102,50,22,130,117,127,125,180,263,275,302,197,93,74,172,143,170,257,161,69,92,100,31,111,207,110,312,210,229,218,271,298,254,221,214,219,119,171,177,276,202,196,195,280,184,147,232,227,237,285,201,47,13,38,189,153,164,60,24,80,66,96,152,73,173,278,223,131,246,295,269,267,234,240,287,160,32,88,294,296,230,123,129,8,67,2,154,12,186,59,76,63,190,57,122,255,291,150,64,286,245,247,244,281,260,212,290,200,90,6,28,53,23,159,78,49,58,98,27,139,236,273,191,167,99,174,86,292,272,251,222,228,133,14,68,316,5,4,52,75,3,105,226,118,215,274,194,72,83,179,308,304,307,289,283,297,243,258,310,87,35,20,141,217,238,279,288,206,89,293,305,311,79,40,84,11,115,10,62,205,44,16,112,213,239,109,317,249,282,306,199,270,242,299,108,1,94,0> = 57006273 (TOUR)
+BEGIN PARTIAL - GPU-XPU
+initializing kernel 0 with &kernel:0x1329bd0 SWAP TOTAL=0
+&h_moves=0x203600000
+launching kernel k=0 SWAP!
+kernel moveElems=315!
+Calling kernel SWAP
+Kernel SWAP	grid(1,315,1)	blck(288,1,1)	shared=5104 (4 KB)	size=319
+adsData=0x500fa0000
+kernel time 0.4940000 ms
+moveElems=315
+after sort 0 (31,61) -913388
+graph resize to 315
+Graph  310/315 SWAP moves
+partial GPU-CPU time 0.5680000 ms
+partial GPU-CPU improvement=-14846253 count=44 moveCount=44
+kernel 2 moveElems=315!
+partial GPU-GPU time 0.5390000 ms
+partial GPU-GPU improvement=-14846253 count=44 moveCount=44
+IMPR CHECKED OK!
+
+initializing kernel 1 with &kernel:0x1329ce0 2OPT TOTAL=0
+&h_moves=0x203600a00
+launching kernel k=1 2OPT!
+kernel moveElems=160!
+kernel time 0.2270000 ms
+moveElems=160
+after sort 0 (45,169) -1258450
+graph resize to 160
+Graph  160/160 2OPT moves
+partial GPU-CPU time 0.1430000 ms
+partial GPU-CPU improvement=-2970127 count=3 moveCount=3
+kernel 2 moveElems=160!
+partial GPU-GPU time 0.1290000 ms
+partial GPU-GPU improvement=-2970127 count=3 moveCount=3
+IMPR CHECKED OK!
+
+initializing kernel 2 with &kernel:0x1329df0 OROPT1 TOTAL=0
+&h_moves=0x203601400
+launching kernel k=2 OROPT1!
+kernel moveElems=316!
+kernel time 0.4610000 ms
+moveElems=316
+after sort 0 (61,1) -658748
+graph resize to 316
+Graph  316/316 OROPT1 moves
+partial GPU-CPU time 0.5430000 ms
+partial GPU-CPU improvement=-2597767 count=7 moveCount=7
+kernel 2 moveElems=316!
+partial GPU-GPU time 0.6980000 ms
+partial GPU-GPU improvement=-2597767 count=7 moveCount=7
+IMPR CHECKED OK!
+
+END PARTIAL - GPU-XPU
+-----------------------------------------
+BEGIN TOTAL - GPU-XPU
+initializing kernel 0 with &tkernel:0x13c5600 SWAP TOTAL=1
+&tkernel->transBuffer=0x203700000
+&h_moves=0x203700000
+tkernel solution set!
+launching kernel k=0 SWAP!
+kernel moveElems=90720!
+Calling kernel SWAP
+Kernel SWAP	grid(1,315,1)	blck(288,1,1)	shared=5104 (4 KB)	size=319
+adsData=0x501304600
+kernel time 0.3550000 ms
+GOT RESULT OF 90720 ELEMS
+moveElems=90720
+after sort 0 (31,61) -913388
+graph resize to 7666
+Graph  7666/7666 SWAP moves
+total GPU-CPU time 187.4980000 ms
+total GPU-CPU improvement=-19839413 count=64 moveCount=64
+tkernel 2 moveElems=90720!
+total GPU-GPU time 49.1820000 ms
+total GPU-GPU improvement=-19839413 count=64 moveCount=64
+IMPR CHECKED OK!
+
+finished this kernel
+
+initializing kernel 1 with &tkernel:0x13c5710 2OPT TOTAL=1
+&tkernel->transBuffer=0x203800000
+&h_moves=0x203800000
+tkernel solution set!
+launching kernel k=1 2OPT!
+kernel moveElems=46080!
+kernel time 0.1980000 ms
+GOT RESULT OF 46080 ELEMS
+moveElems=46080
+after sort 0 (45,169) -1258450
+graph resize to 9079
+Graph  9079/9079 2OPT moves
+total GPU-CPU time 433.1630000 ms
+total GPU-CPU improvement=-4098074 count=9 moveCount=9
+tkernel 2 moveElems=46080!
+total GPU-GPU time 23.9850000 ms
+total GPU-GPU improvement=-4098074 count=9 moveCount=9
+IMPR CHECKED OK!
+
+finished this kernel
+
+initializing kernel 2 with &tkernel:0x13c5820 OROPT1 TOTAL=1
+&tkernel->transBuffer=0x203900000
+&h_moves=0x203900000
+tkernel solution set!
+launching kernel k=2 OROPT1!
+kernel moveElems=70784!
+kernel time 0.3870000 ms
+GOT RESULT OF 70784 ELEMS
+moveElems=70784
+after sort 0 (61,1) -658748
+graph resize to 17911
+Graph  17911/17911 OROPT1 moves
+
+total GPU-CPU time 2203.9930000 ms
+total GPU-CPU improvement=-2929732 count=15 moveCount=15
+tkernel 2 moveElems=70784!
+total GPU-GPU time 35.6240000 ms
+total GPU-GPU improvement=-2929732 count=15 moveCount=15
+IMPR CHECKED OK!
+
+finished this kernel
+-----------------------------------------
+END TOTAL
+
+finished successfully
+
