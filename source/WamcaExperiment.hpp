@@ -352,6 +352,7 @@ public:
 	        lprintf("-----------------------------------------\n");
 
 
+	        /*
 	        getchar();
 
 
@@ -429,12 +430,12 @@ public:
 	            tkernel->sync();
 
 
-	            /*
-	            lprintf("MERGE_GPU moves: ");
-	            for(unsigned i=0; i<kernel->moveElems;i++)
-	            	lprintf("%d\t",h_moves[i].cost);
-	            lprintf("\n");
-				*/
+
+//	            lprintf("MERGE_GPU moves: ");
+//	            for(unsigned i=0; i<kernel->moveElems;i++)
+//	            	lprintf("%d\t",h_moves[i].cost);
+//	            lprintf("\n");
+
 
 				impr2 = 0;
 				countImpr2 = 0;
@@ -473,7 +474,7 @@ public:
 	        lprintf("-----------------------------------------\n");
 	        lprintf("END TOTAL\n");
 	        getchar();
-
+			*/
 	    }
 
 	    //delete solVnd;

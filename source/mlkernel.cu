@@ -133,6 +133,7 @@ __global__ void test2Opt(MLMove64* g_move64, int numElems)
 }
 
 
+
 __global__ void testOrOpt(MLMove64* g_move64, int numElems)
 {
 	if(tx >= numElems)
@@ -166,6 +167,57 @@ __global__ void testOrOpt(MLMove64* g_move64, int numElems)
 
 	// end kernel
 }
+
+__global__ void test2OptTotal(MLMove64* g_move64, int numElems)
+{
+	if(tx >= numElems)
+		return;
+	//extern __shared__ MLMove64 s_move64[];
+
+	int cmax  = GPU_DIVCEIL(numElems,blockDim.x);
+	int c, ctx;
+
+	for(int i=0; i<=numElems; ++i) { // tx 'or' numElems (?) symmetry?
+		register MLMove64 mi = g_move64[i];
+		if(mi.cost < 0){
+			for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < numElems);++c)
+			if(ctx > i)
+			{
+				register MLMove64 mx = g_move64[ctx];
+				if(!f_can2OptMerge(mi, mx))
+					g_move64[ctx].cost = 0;
+			}
+		}
+		syncthreads();
+	}
+	// end kernel
+}
+
+__global__ void testSwapTotal(MLMove64* g_move64, int numElems)
+{
+	if(tx >= numElems)
+		return;
+	//extern __shared__ MLMove64 s_move64[];
+
+	int cmax  = GPU_DIVCEIL(numElems,blockDim.x);
+	int c, ctx;
+
+	for(int i=0; i<=numElems; ++i) { // tx 'or' numElems (?) symmetry?
+		register MLMove64 mi = g_move64[i];
+		if(mi.cost < 0){
+			for(c=0;(c < cmax) && ((ctx = c*blockDim.x + tx) < numElems);++c)
+			if(ctx > i)
+			{
+				register MLMove64 mx = g_move64[ctx];
+				if(!f_canSwapMerge(mi, mx))
+					g_move64[ctx].cost = 0;
+			}
+		}
+		syncthreads();
+	}
+	// end kernel
+}
+
 
 
 void
@@ -217,7 +269,13 @@ MLKernel::mergeGPU() {
 		//block.x = blockSize;
 		block.x = ::max(blockSize, moveElems);
 
-		testSwap<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		if(!isTotal)
+			testSwap<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		else{
+			block.x = ::min(1024,moveElems);
+			sMemSize = 0; // no shared memory
+			testSwapTotal<<<grid, block, sMemSize, stream>>>((MLMove64*) moveData, moveElems);
+		}
 		break;
 	case MLMI_2OPT:
 		gpuOccupancyMaxPotentialBlockSizeVariableSMem(&minGridSize, &blockSize, test2Opt, __cudaOccupancyB2DHelper(sMemSize), blockSizeLimit);
@@ -763,7 +821,7 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
 
         merge[count] = *graphMerge[i];
         cost += graphMerge[i]->cost;
-        lprintf("choose %s(%d,%d) = %d\n", this->name, graphMerge[i]->i, graphMerge[i]->j, graphMerge[i]->cost);
+        //lprintf("choose %s(%d,%d) = %d\n", this->name, graphMerge[i]->i, graphMerge[i]->j, graphMerge[i]->cost);
 
         ++count;
         /*
