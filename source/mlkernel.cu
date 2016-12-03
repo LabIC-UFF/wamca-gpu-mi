@@ -20,6 +20,8 @@
 
 using namespace std;
 
+
+
 // ################################################################################ //
 // ##                                                                            ## //
 // ##                               CONSTANTS & MACROS                           ## //
@@ -38,6 +40,8 @@ using namespace std;
 							       ( GPU_ABS(int(m1.j - m2.i)) > 1 ) && \
 							       ( GPU_ABS(int(m1.j - m2.j)) > 1 ) )
 
+
+// __forceinline__
 __forceinline__ __device__ bool f_canSwapMerge(MLMove64& m1, MLMove64& m2) {
 	return     ( GPU_ABS(int(m1.i - m2.i)) > 1 ) &&
 		       ( GPU_ABS(int(m1.i - m2.j)) > 1 ) &&
@@ -63,6 +67,8 @@ __forceinline__ __device__ bool f_canOrOptMerge(MLMove64& m1, MLMove64& m2) {
     return (max1 + k1 < min2) || (min1 > max2 + k2);
 }
 
+
+
 __global__ void testSwap(MLMove64* g_move64, int numElems)
 {
 	if(tx >= numElems)
@@ -77,7 +83,7 @@ __global__ void testSwap(MLMove64* g_move64, int numElems)
 	s_move64[tx] = m;
 	if(s_move64[tx].cost >= 0) // optional
 		return;                // optional
-	syncthreads();
+	__syncthreads();
 
 	for(int i=0; i<=tx; ++i) { // tx 'or' numElems (?) symmetry?
 		if(i != tx) {
@@ -88,7 +94,7 @@ __global__ void testSwap(MLMove64* g_move64, int numElems)
 					s_move64[tx].cost = 0;
 			}
 		}
-		syncthreads();
+		__syncthreads();
 	}
 
 	if(s_move64[tx].cost == 0)
@@ -96,6 +102,7 @@ __global__ void testSwap(MLMove64* g_move64, int numElems)
 
 	// end kernel
 }
+
 
 
 __global__ void test2Opt(MLMove64* g_move64, int numElems)
@@ -112,7 +119,7 @@ __global__ void test2Opt(MLMove64* g_move64, int numElems)
 	s_move64[tx] = m;
 	if(s_move64[tx].cost >= 0) // optional
 		return;                // optional
-	syncthreads();
+	__syncthreads();
 
 	for(int i=0; i<=tx; ++i) { // tx 'or' numElems (?) symmetry?
 		if(i != tx) {
@@ -123,7 +130,7 @@ __global__ void test2Opt(MLMove64* g_move64, int numElems)
 					s_move64[tx].cost = 0;
 			}
 		}
-		syncthreads();
+		__syncthreads();
 	}
 
 	if(s_move64[tx].cost == 0)
@@ -148,7 +155,7 @@ __global__ void testOrOpt(MLMove64* g_move64, int numElems)
 	s_move64[tx] = m;
 	if(s_move64[tx].cost >= 0) // optional
 		return;                // optional
-	syncthreads();
+	__syncthreads();
 
 	for(int i=0; i<=tx; ++i) { // tx 'or' numElems (?) symmetry?
 		if(i != tx) {
@@ -159,7 +166,7 @@ __global__ void testOrOpt(MLMove64* g_move64, int numElems)
 					s_move64[tx].cost = 0;
 			}
 		}
-		syncthreads();
+		__syncthreads();
 	}
 
 	if(s_move64[tx].cost == 0)
@@ -195,7 +202,7 @@ __global__ void testSwapTotal(MLMove64* g_move64, int numElems)
 					g_move64[ctx].cost = 0;
 			}
 		}
-		syncthreads();
+		__syncthreads();
 	}
 	// end kernel
 }
@@ -221,7 +228,7 @@ __global__ void test2OptTotal(MLMove64* g_move64, int numElems)
 					g_move64[ctx].cost = 0;
 			}
 		}
-		syncthreads();
+		__syncthreads();
 	}
 	// end kernel
 }
@@ -247,10 +254,13 @@ __global__ void testOrOptTotal(MLMove64* g_move64, int numElems)
 					g_move64[ctx].cost = 0;
 			}
 		}
-		syncthreads();
+		__syncthreads();
 	}
 	// end kernel
 }
+
+
+
 
 
 // ========================= GPU MERGE ALGORITHMS ===========================
@@ -260,21 +270,19 @@ MLKernel::mergeGPU() {
    	   thrust::device_ptr<MLMovePack> td_moveData(moveData);
    	   thrust::sort(td_moveData, td_moveData+moveElems, OBICmp());
 
-/*
-       gpuMemcpyAsync(transBuffer.p_void,moveData,moveElems * sizeof(MLMove64),cudaMemcpyDeviceToHost,stream);
-       MLMove64* p_pack = transBuffer.p_move64;
-       sync();
+//       gpuMemcpyAsync(transBuffer.p_void,moveData,moveElems * sizeof(MLMove64),cudaMemcpyDeviceToHost,stream);
+//       MLMove64* p_pack = transBuffer.p_move64;
+//       sync();
+//       printf("FIRST PRINT!\n");
+//       int count = 0;
+//       for(unsigned i=0; i<moveElems; i++) {
+//    	   printf("%d\t",p_pack[i].cost);
+//    	   if(p_pack[i].cost < 0)
+//    		   count++;
+//       }
+//       printf("\n");
+//       printf("count negative=%d moveElems=%d\n", count, moveElems);
 
-       printf("FIRST PRINT!\n");
-       int count = 0;
-       for(unsigned i=0; i<moveElems; i++) {
-    	   printf("%d\t",p_pack[i].cost);
-    	   if(p_pack[i].cost < 0)
-    		   count++;
-       }
-       printf("\n");
-       printf("count negative=%d moveElems=%d\n", count, moveElems);
-*/
 
        dim3 grid, block;
        grid.x = grid.y = grid.z = 1;
@@ -283,13 +291,13 @@ MLKernel::mergeGPU() {
 
        //printf("kernel_id=%d\n",this->id);
 
-       /*
-    MLMI_SWAP,
-    MLMI_2OPT,
-    MLMI_OROPT1,
-    MLMI_OROPT2,
-    MLMI_OROPT3,
-        */
+//
+//    MLMI_SWAP,
+//    MLMI_2OPT,
+//    MLMI_OROPT1,
+//    MLMI_OROPT2,
+//    MLMI_OROPT3,
+//
 		int minGridSize;
 		int blockSize;
 		size_t sMemSize = moveElems * sizeof(MLMove64);
@@ -437,11 +445,10 @@ MLKernel::init(bool solCreate)
 {
     lprintf("Kernel INIT: %s TOTAL:%d\n",name, isTotal);
 
-	size_t  free,
-            size;
 
-    int gpuId = 0; // TODO: fix
-
+	//size_t  free,
+    //        size;
+    //int gpuId = 0; // TODO: fix
 
     // Kernel solution
     //solBase = new MLSolution(problem,cudaHostAllocDefault);
@@ -454,13 +461,13 @@ MLKernel::init(bool solCreate)
         solution->adsAlloc();
     }
 
-    /*
-     * Kernel data
-     *
-     * +--------+--------+--------+--------+--------+
-     * |  SWAP  |  2OPT  | OROPT1 | OROPT2 | OROPT3 |
-     * +--------+--------+--------+--------+--------+
-     */
+//
+//     * Kernel data
+//     *
+//     * +--------+--------+--------+--------+--------+
+//     * |  SWAP  |  2OPT  | OROPT1 | OROPT2 | OROPT3 |
+//     * +--------+--------+--------+--------+--------+
+//
 
     // Kernel stream
     gpuStreamCreate(&stream);
@@ -474,26 +481,26 @@ MLKernel::init(bool solCreate)
     gpuEventCreate(&evtStart);
     gpuEventCreate(&evtStop);
 
-    /*
-     * ADS buffer
-     *
-     *     info      coords[x,y]        [W|Id]              T               C[0]                C[size-1]
-     * +---------+----------------+----------------+----------------+----------------+-----+----------------+
-     * | b elems | size elems |gap| size elems |gap| size elems |gap| size elems |gap| ... | size elems |gap|
-     * +---------+----------------+----------------+----------------+----------------+-----+----------------+
-     *
-     * b = MLP_ADSINFO_ELEMS = GPU_GLOBAL_ALIGN/sizeof(uint) = 128/4 = 32 elems
-     *
-     * info[0]   : size (ADS buffer size in bytes)
-     * info[1]   : rowElems
-     * info[2]   : solElems (sol size)
-     * info[3]   : solCost
-     * info[4]   : tour
-     * info[5]   : k
-     * info[6]   : reserved
-     * ...
-     * info[b-1] : reserved
-     */
+//
+//     * ADS buffer
+//     *
+//     *     info      coords[x,y]        [W|Id]              T               C[0]                C[size-1]
+//     * +---------+----------------+----------------+----------------+----------------+-----+----------------+
+//     * | b elems | size elems |gap| size elems |gap| size elems |gap| size elems |gap| ... | size elems |gap|
+//     * +---------+----------------+----------------+----------------+----------------+-----+----------------+
+//     *
+//     * b = MLP_ADSINFO_ELEMS = GPU_GLOBAL_ALIGN/sizeof(uint) = 128/4 = 32 elems
+//     *
+//     * info[0]   : size (ADS buffer size in bytes)
+//     * info[1]   : rowElems
+//     * info[2]   : solElems (sol size)
+//     * info[3]   : solCost
+//     * info[4]   : tour
+//     * info[5]   : k
+//     * info[6]   : reserved
+//     * ...
+//     * info[b-1] : reserved
+
 #ifdef GPU_EVAL_ALIGNED
     adsRowElems  = GPU_BLKSIZE_GLOBAL(solSize * sizeof(uint)) / sizeof(uint);
 #else
@@ -507,19 +514,19 @@ MLKernel::init(bool solCreate)
 
     gpuMalloc(&adsData,adsDataSize);
 
-    /*
-     * Movement buffer
-     *
-     *        0                       size - 1
-     * +-------------+------------+-------------+
-     * |  (m,i,j,c)  |    . . .   |  (m,i,j,c)  |
-     * +-------------+------------+-------------+
-     *
-     *  m   neighborhood (swap,2opt,oropt1,oropt2,oropt3)
-     *  i   solution index i
-     *  j   solution index j
-     *  c   solution cost
-     */
+//
+//     * Movement buffer
+//     *
+//     *        0                       size - 1
+//     * +-------------+------------+-------------+
+//     * |  (m,i,j,c)  |    . . .   |  (m,i,j,c)  |
+//     * +-------------+------------+-------------+
+//     *
+//     *  m   neighborhood (swap,2opt,oropt1,oropt2,oropt3)
+//     *  i   solution index i
+//     *  j   solution index j
+//     *  c   solution cost
+
     if(!isTotal)
     	moveDataSize = solSize * sizeof(ullong);
     else
@@ -566,8 +573,8 @@ MLKernel::init(bool solCreate)
 void
 MLKernel::term()
 {
-	int gpuId = 0; // TODO: fix
-    l4printf("GPU%u Kernel %d: %s\n",gpuId,id,name);
+	//int gpuId = 0; // TODO: fix
+    //l4printf("GPU%u Kernel %d: %s\n",gpuId,id,name);
 
     gpuStreamDestroy(stream);
     gpuEventDestroy(evtStart);
@@ -678,10 +685,8 @@ canOrOptMerge(MLMove64 *m1, MLMove64 *m2)
     switch(m2->id) {
     case MLMI_SWAP:
         return canSwapMerge(m2,m1);
-        break;
     case MLMI_2OPT:
         return can2OptMerge(m2,m1);
-        break;
     default:
         int k1,min1,max1,
             k2,min2,max2;
@@ -701,7 +706,7 @@ canOrOptMerge(MLMove64 *m1, MLMove64 *m2)
 
         return (max1 + k1 < min2) || (min1 > max2 + k2);
     }
-    return false;
+    //return false;
 }
 
 bool
@@ -715,7 +720,7 @@ canMerge(MLMove64 *move1, MLMove64 *move2)
     default:
         return canOrOptMerge(move1,move2);
     }
-    return false;
+    //return false;
 }
 
 bool
@@ -759,21 +764,6 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
 
     lprintf("moveElems=%d\n",moveElems);
 
-	/*
-
-    if(isTotal) {
-    	i = 109723;
-    	lprintf("%d (%d,%d) %d\n", i, moves[i].i, moves[i].j, moves[i].cost);
-    				getchar();
-		for (i = 0; i < n; i++)
-		{
-			lprintf("%d (%d,%d) %d\n", i, moves[i].i, moves[i].j, moves[i].cost);
-			getchar();
-		}
-    }
-		*/
-
-
     // Sort moves
     sort(moves,moves + n,compMove);
 
@@ -781,15 +771,6 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
 	i = 0;
 	lprintf("after sort %d (%d,%d) %d\n", i, moves[i].i, moves[i].j, moves[i].cost);
 
-    /*
-    // If first moves has no gain, or ONLY first move has gain, returns
-    if((moves[0].cost >= 0) || ((moves[0].cost < 0) && (moves[1].cost >= 0))) {
-        merge[0] = moves[0];
-        count = moves[0].cost < 0;
-        l4printf("Graph  %d/%d %s moves (return)\n",count,n,name);
-        return  moves[0].cost;
-    }
-    */
 
     // Assign moves to graph
     graphMerge.clear();
@@ -839,19 +820,9 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
         }
     }
 
-    // PRINT FLAGS
-    /*
-    lprintf("Print FLAGS:\n");
-    for(i=0;i < graphMerge.vertexCount;i++) {
-   	    lprintf("PFLAG id=%d cost=%d flag=%d\n",i, graphMerge[i]->cost, graphMerge.getFlag(i));
-    }
-    lprintf("\n");
-    */
 
 #if 0
-    /*
-     * Generate movement conflict graph (Graphviz DOT file)
-     */
+//     * Generate movement conflict graph (Graphviz DOT file)
     ofstream   os("/tmp/merge.dot",ios::trunc);
 
     os << "graph G {\n\tnode [shape=circle,fontsize=10];\n";
@@ -878,14 +849,13 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
         //lprintf("choose %s(%d,%d) = %d\n", this->name, graphMerge[i]->i, graphMerge[i]->j, graphMerge[i]->cost);
 
         ++count;
-        /*
-        if(count == maxMerge) {
-            lprintf("maxMerge reached: %d\n",count);
-            getchar();
-            getchar();
-            break;
-        }
-        */
+
+//        if(count == maxMerge) {
+//            lprintf("maxMerge reached: %d\n",count);
+//            getchar();
+//            getchar();
+//            break;
+//        }
 
         graphMerge.setFlag(i,1);
 
@@ -901,21 +871,3 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
     return cost;
 }
 
-
-/*
-void
-MLKernel::sendSolution()
-{
-   uint *sol;
-
-   sol = ADS_SOLUTION_PTR(solution->adsData,adsRowElems);
-   lprintf("GPU%u: %s.sendSolution()\tadsDataSize=%u\tsol=%p\n",gpuTask.gpuId,name,adsDataSize,sol);
-   printf("\tsendSolution\t<");
-   for(int i=0;i < solSize;i++)
-       printf(" %u",GPU_HI_USHORT(sol[i]));
-   printf(" > p=%p\n",sol);
-
-    // Copy solution to GPU
-   gpuMemcpyAsync(adsData,solution->adsData,adsDataSize,cudaMemcpyHostToDevice,stream);
-}
-*/

@@ -142,12 +142,24 @@ typedef enum {
 /*!
  * MLMove64
  */
+/*
 struct MLMove64 {
     uint    id   :  4;
     uint    i    : 14;
     uint    j    : 14;
     int     cost : 32;
 };
+*/
+
+
+
+struct MLMove64 {
+    uint    id : 4;
+    uint    i : 14;
+    uint    j : 14;
+    int     cost : 32;
+};
+
 
 /*!
  * MLMovePack
