@@ -154,9 +154,9 @@ struct MLMove64 {
 
 
 struct MLMove64 {
-    uint    id : 4;
-    uint    i : 14;
-    uint    j : 14;
+    unsigned int    id : 4;
+    unsigned int    i : 14;
+    unsigned int    j : 14;
     int     cost;    // Goddamn Eyder...
 };
 
