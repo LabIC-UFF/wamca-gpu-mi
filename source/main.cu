@@ -35,7 +35,7 @@ envInit()
     // Detect CUDA driver and GPU devices
     switch(cudaGetDeviceCount(&count)) {
     case cudaSuccess:
-        for(int d;d < count;d++) {
+        for(int d=0;d < count;d++) {
             if(cudaGetDeviceProperties(&prop,d) == cudaSuccess) {
                 if(prop.major < 2)
                     WARNING("Device '%s' is not suitable to this application. Device capability %d.%d < 2.0\n",
