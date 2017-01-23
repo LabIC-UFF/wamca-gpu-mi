@@ -30,8 +30,9 @@
 /*
  * GPU macros
  */
+
 #define GPU_DIST_COORD(i,j)         int(sqrtf((float) (GPU_SQR(sm_coordx[i] - sm_coordx[j]) + \
-                                                       GPU_SQR(sm_coordy[i] - sm_coordy[j]))) + sm_round)
+                                                       GPU_SQR(sm_coordy[i] - sm_coordy[j]))) + 0) // TODO: PUT THIS VALUE sm_round=0 IN INSTANCE, EYDER... PLEASE!!!!
 
 #define GPU_MOVE_PACKID(i,j,s)      ( (uint(j) << 18) | (uint(i) << 4) | uint(s) )
 #define GPU_MOVE_PACK64(hi,lo)      ( (ullong(hi) << 32) | ullong(lo) )

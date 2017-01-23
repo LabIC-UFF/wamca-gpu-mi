@@ -858,7 +858,7 @@ MLKernelOrOpt::defineKernelGrid()
      * Compute grid
      */
     grid.x = 1;
-    grid.y = solSize - problem.params.costTour - tag;
+    grid.y = solSize + !problem.costTour - tag - 2;    ////solSize - problem.params.costTour - tag; // TODO: FIX!!
     grid.z = 1;
 
 #endif
@@ -904,10 +904,10 @@ MLKernelOrOpt::launchKernel()
     flagExec = true;
 
     // Calls kernel
-    if(!isTotal)
+//    if(!isTotal)
     	kernelOrOpt<<<grid,block,shared,stream>>>(adsData,moveData,tag,solSize);
-    else
-    	kernelOrOptTotal<<<grid,block,shared,stream>>>(adsData,moveData,tag,solSize);
+//    else
+//    	kernelOrOptTotal<<<grid,block,shared,stream>>>(adsData,moveData,tag,solSize);
 }
 
 void

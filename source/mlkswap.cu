@@ -796,10 +796,10 @@ MLKernelSwap::launchKernel()
     lprintf("adsData=%p\n",adsData);
 
     // Calls kernel
-    if(!isTotal)
+//    if(!isTotal)
     	kernelSwap<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
-    else
-    	kernelSwapTotal<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
+//    else
+//    	kernelSwapTotal<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
     gpuDeviceSynchronize();
 }
 

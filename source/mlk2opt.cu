@@ -32,7 +32,7 @@
 // ##                                                                             ## //
 // ################################################################################# //
 
-#define MLP_GPU_ADS
+//#define MLP_GPU_ADS
 #ifdef  MLP_GPU_ADS
 
 /*
@@ -713,10 +713,11 @@ MLKernel2Opt::launchKernel()
     flagExec = true;
 
     // Calls kernel
-    if(!isTotal)
+
+//    if(!isTotal)
     	kernel2Opt<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
-    else
-    	kernel2OptTotal<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
+//    else
+//    	kernel2OptTotal<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
 }
 
 void

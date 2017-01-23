@@ -279,9 +279,7 @@ __global__
 void
 kernelWeight(const MLADSData *ads)
 {
-    __shared__
-    int      sm_coordx[1024],
-             sm_coordy[1024];
+    __shared__ int sm_coordx[1024], sm_coordy[1024];
     float    sm_round;
     uint    *gm_data;
 

@@ -60,16 +60,16 @@ CPP_DEPS += \
 source/%.o: ../source/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: NVCC Compiler'
-	/usr/local/cuda-8.0/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -O3 -gencode arch=compute_35,code=sm_35 -gencode arch=compute_50,code=sm_50  -odir "source" -M -o "$(@:%.o=%.d)" "$<"
-	/usr/local/cuda-8.0/bin/nvcc -g -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v  -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -O3 --compile  -x c++ -o  "$@" "$<"
+	/usr/local/cuda-8.0/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -O3 -gencode arch=compute_35,code=sm_35 -gencode arch=compute_50,code=sm_50  -odir "source" -M -o "$(@:%.o=%.d)" "$<"
+	/usr/local/cuda-8.0/bin/nvcc -g -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v  -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE  -O3 --compile  -x c++ -o  "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
 source/%.o: ../source/%.cu
 	@echo 'Building file: $<'
 	@echo 'Invoking: NVCC Compiler'
-	/usr/local/cuda-8.0/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -O3 -gencode arch=compute_35,code=sm_35 -gencode arch=compute_50,code=sm_50  -odir "source" -M -o "$(@:%.o=%.d)" "$<"
-	/usr/local/cuda-8.0/bin/nvcc -g -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v  -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -DMLP_CPU_ADS -DMLP_GPU_ADS -O3 --compile --relocatable-device-code=false -gencode arch=compute_35,code=compute_35 -gencode arch=compute_50,code=compute_50 -gencode arch=compute_35,code=sm_35 -gencode arch=compute_50,code=sm_50  -x cu -o  "$@" "$<"
+	/usr/local/cuda-8.0/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE  -O3 -gencode arch=compute_35,code=sm_35 -gencode arch=compute_50,code=sm_50  -odir "source" -M -o "$(@:%.o=%.d)" "$<"
+	/usr/local/cuda-8.0/bin/nvcc -g -Xcudafe --diag_suppress=expr_has_no_effect -Xptxas -v  -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE  -O3 --compile --relocatable-device-code=false -gencode arch=compute_35,code=compute_35 -gencode arch=compute_50,code=compute_50 -gencode arch=compute_35,code=sm_35 -gencode arch=compute_50,code=sm_50  -x cu -o  "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
