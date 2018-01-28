@@ -9,7 +9,8 @@ using namespace std;
 
 void envInit();
 
-extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood) {
+extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood,
+		bool justCalc = false) {
 	envInit();
 
 	bool costTour = true;
@@ -22,6 +23,18 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		problem = new MLProblem(costTour, distRound, coordShift);
 	}
 	problem->load(file);
+
+	if (justCalc) {
+		MLSolution* solDevice = new MLSolution(*problem);
+		solDevice->clientCount = solutionSize;
+		for (int si = 0; si < solutionSize; si++) {
+			solDevice->clients[si] = solution[si];
+		}
+		solDevice->update();
+		unsigned int value = solDevice->costCalc();
+		delete solDevice;
+		return value;
+	}
 
 	int seed = 500; // 0: random
 	static WAMCAExperiment *exper = NULL;

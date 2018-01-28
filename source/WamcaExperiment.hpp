@@ -226,6 +226,7 @@ public:
 	    int impr2, countImpr2; // for checking purposes
 	    std::clock_t start;
 	    double duration; // clock duration
+	    uint valor = 0;
 
 	    lprintf("RAND_SEED\t: %u\n",rng.getSeed());
 
@@ -237,9 +238,11 @@ public:
 		    if (solution == NULL) {
 				solDevice->random(rng,0.50);
 		    } else {
+		    	solDevice->clientCount = solutionSize;
 		    	for (int si = 0; si < solutionSize; si++) {
 		    		solDevice->clients[si] = solution[si];
 		    	}
+				solDevice->update();
 		    }
 	        solDevice->ldsUpdate();
 
@@ -488,6 +491,7 @@ public:
 			for (int si = 0; si < solutionSize; si++) {
 				solution[si] = solDevice->clients[si];
 			}
+			valor = solDevice->costCalc();
 	    }
 
 	    // TODO: APLICAR MOVIMENTOS DIRETAMENTE NA GPU! SE FOREM INDEPENDENTES FICA FACIL :)
@@ -496,7 +500,7 @@ public:
 	    // COMO CONTABILIZAR NUMERO DE MOVIMENTOS UTEIS?
 
 	    //delete solVnd;
-	    return 0;
+	    return valor;
 	}
 
 
