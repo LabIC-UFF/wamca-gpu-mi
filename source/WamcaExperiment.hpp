@@ -211,7 +211,7 @@ public:
 	}
 
 
-	void runWAMCA2016()
+	unsigned int runWAMCA2016(int mMax = 3, int kMin = 0, int kMax = 3, int *solution = NULL, unsigned int solutionSize = 0)
 	{
 		lprintf("BEGIN WAMCA 2016 Experiments\n");
 
@@ -230,11 +230,17 @@ public:
 	    lprintf("RAND_SEED\t: %u\n",rng.getSeed());
 
 	    timeAvg = 0;
-	    for(uint m=0;m < 3; m++) {
+	    for(uint m=0;m < mMax; m++) {
 	        lprintf("***\n* Solution #%u\n***\n",m + 1);
 
 		    MLSolution* solDevice = new MLSolution(problem);
-	        solDevice->random(rng,0.50);
+		    if (solution == NULL) {
+				solDevice->random(rng,0.50);
+		    } else {
+		    	for (int si = 0; si < solutionSize; si++) {
+		    		solDevice->clients[si] = solution[si];
+		    	}
+		    }
 	        solDevice->ldsUpdate();
 
 	        lprintf("random solution created!\n");
@@ -243,7 +249,7 @@ public:
 
 	        lprintf("BEGIN PARTIAL - GPU-XPU\n");
 	        //for(int k=0;k < kernelCount;k++) {
-	        for(int k=0;k < 3;k++) {
+	        for(int k=0;k < kMax;k++) {
 	            MLKernel    *kernel = kernels[k];
 	        	//lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
 	            lprintf("initializing kernel %d with &kernel:%p %s TOTAL=%d\n", k, kernel, kernel->name, kernel->isTotal);
@@ -360,7 +366,7 @@ public:
 
 	        lprintf("BEGIN TOTAL - GPU-XPU\n");
 	        //for(int k=0;k < tkernelCount;k++) {
-	        for(int k=0;k < 3;k++) {
+	        for(int k=0;k < kMax;k++) {
 	        	MLKernel* tkernel = tkernels[k];
 	        	lprintf("initializing kernel %d with &tkernel:%p %s TOTAL=%d\n", k, tkernel, tkernel->name, tkernel->isTotal);
 
@@ -479,6 +485,9 @@ public:
 
 
 
+			for (int si = 0; si < solutionSize; si++) {
+				solution[si] = solDevice->clients[si];
+			}
 	    }
 
 	    // TODO: APLICAR MOVIMENTOS DIRETAMENTE NA GPU! SE FOREM INDEPENDENTES FICA FACIL :)
@@ -487,6 +496,7 @@ public:
 	    // COMO CONTABILIZAR NUMERO DE MOVIMENTOS UTEIS?
 
 	    //delete solVnd;
+	    return 0;
 	}
 
 
