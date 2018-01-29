@@ -49,3 +49,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 	lprintf("finished successfully\n");
 	return resp;
 }
+
+extern "C" unsigned int calculateValue(char * file, int *solution, unsigned int solutionSize) {
+	return bestNeighbor(file, solution, solutionSize, 0);
+}

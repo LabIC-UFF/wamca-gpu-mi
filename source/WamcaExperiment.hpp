@@ -204,7 +204,7 @@ public:
 
     unsigned int runWAMCA2016(int mMax = 3, int kMin = 0, int kMax = 3, int *solution = NULL, unsigned int solutionSize = 0)
     {
-        lprintf("BEGIN WAMCA 2016 Experiments\n");
+//        lprintf("BEGIN WAMCA 2016 Experiments\n");
 
         //MLSolution  *solVnd;
         MLMove       move;
@@ -223,7 +223,7 @@ public:
 
         timeAvg = 0;
         for(uint m=0; m < mMax; m++) {
-            lprintf("***\n* Solution #%u\n***\n",m + 1);
+//            lprintf("***\n* Solution #%u\n***\n",m + 1);
 
             MLSolution* solDevice = new MLSolution(problem);
             if (solution == NULL) {
@@ -237,8 +237,8 @@ public:
             }
             solDevice->ldsUpdate();
 
-            lprintf("random solution created!\n");
-            solDevice->show(std::cout);
+//            lprintf("random solution created!\n");
+//            solDevice->show(std::cout);
 
 
             lprintf("BEGIN PARTIAL - GPU-XPU\n");
@@ -330,14 +330,22 @@ public:
                         impr2 += move.cost;
                         countImpr2++;
                         l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
+//                        printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
                         kernel->applyMove(move);
                     }
                 }
-                duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
+
+//                kernel->getSolution(solDevice);
+//                lprintf("solution updated!\n");
+//				solDevice->show(std::cout);
+
+				duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
                 printf("partial GPU-GPU time %.7f ms\n", duration);
                 printf("partial GPU-GPU improvement=%d count=%d moveCount=%d\n", impr2, countImpr2, movesCount);
 
 
+                /*
+                 // Esta checagem não faz sentido pois as linhas que alteram os valores de impr estão comentadas, sempre daria erro
                 if((impr2==impr) && (countImpr == countImpr2)) {
                     lprintf("IMPR CHECKED OK!\n\n");
                 } else {
@@ -345,6 +353,7 @@ public:
                     getchar();
                     getchar();
                 }
+                */
 
 
 
@@ -352,6 +361,10 @@ public:
                          int(solDevice->cost),
                          int(kernel->solution->cost),
                          int(kernel->solution->cost) - int(solDevice->cost));
+
+                kernel->getSolution(solDevice);
+//				lprintf("solution updated!\n");
+//				solDevice->show(std::cout);
             }  // end for each kernel
             lprintf("END PARTIAL - GPU-XPU\n");
             lprintf("-----------------------------------------\n");
@@ -483,7 +496,10 @@ public:
 
             */
 
-            if (solution == NULL) {
+            if (solution != NULL) {
+//				lprintf("solution updated final!\n");
+//				solDevice->show(std::cout);
+//            	printf("Copying solution back.\n");
                 for (int si = 0; si < solutionSize; si++) {
                     solution[si] = solDevice->clients[si];
                 }
