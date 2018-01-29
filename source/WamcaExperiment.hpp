@@ -488,9 +488,12 @@ public:
 
 */
 
-			for (int si = 0; si < solutionSize; si++) {
-				solution[si] = solDevice->clients[si];
-			}
+            if (solution == NULL) {
+                for (int si = 0; si < solutionSize; si++) {
+				    solution[si] = solDevice->clients[si];
+			    }
+            }
+			
 			valor = solDevice->costCalc();
 	    }
 
