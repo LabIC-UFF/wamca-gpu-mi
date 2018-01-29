@@ -11,7 +11,9 @@ void envInit();
 
 extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood,
 		bool justCalc = false) {
-	envInit();
+	if (!justCalc) {
+		envInit();
+	}
 
 	bool costTour = true;
 	bool distRound = false;
@@ -23,11 +25,6 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 	}
 	problem->load(file);
 
-	int seed = 500; // 0: random
-	static WAMCAExperiment *exper = NULL;
-	if (exper == NULL) {
-		exper = new WAMCAExperiment(*problem, seed);
-	}
 	if (justCalc) {
 		MLSolution* solDevice = new MLSolution(*problem);
 		solDevice->clientCount = solutionSize;
@@ -38,6 +35,12 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		unsigned int value = solDevice->costCalc();
 		delete solDevice;
 		return value;
+	}
+
+	int seed = 500; // 0: random
+	static WAMCAExperiment *exper = NULL;
+	if (exper == NULL) {
+		exper = new WAMCAExperiment(*problem, seed);
 	}
 	unsigned int resp = exper->runWAMCA2016(1, neighborhood, neighborhood + 1, solution, solutionSize);
 
