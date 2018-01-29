@@ -335,7 +335,7 @@ public:
 						impr2 += move.cost;
 						countImpr2++;
 						l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
-						//kernel->applyMove(move);
+						kernel->applyMove(move);
 					}
 				}
 				duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
@@ -364,7 +364,7 @@ public:
 
 
 	        //getchar();
-
+/*
 
 
 	        lprintf("BEGIN TOTAL - GPU-XPU\n");
@@ -486,7 +486,7 @@ public:
 	        lprintf("END TOTAL\n");
 	        //getchar();
 
-
+*/
 
 			for (int si = 0; si < solutionSize; si++) {
 				solution[si] = solDevice->clients[si];
@@ -511,4 +511,3 @@ public:
 
 
 #endif
-
