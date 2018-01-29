@@ -287,6 +287,8 @@ public:
 //	            	lprintf("%d\t",h_moves[i].cost);
 //	            lprintf("\n");
 
+                // MERGE GPU-CPU (partial)
+/*
                 movesCost = kernel->mergeGreedy(mergeBuffer,movesCount);
                 impr = 0;
                 countImpr = 0;
@@ -302,8 +304,10 @@ public:
                 duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
                 printf("partial GPU-CPU time %.7f ms\n", duration);
                 printf("partial GPU-CPU improvement=%d count=%d moveCount=%d\n", impr, countImpr, movesCount);
+*/
 
 
+                // MERGE GPU-GPU (partial)
                 lprintf("kernel 2 moveElems=%d!\n",kernel->moveElems);
                 start = std::clock();
                 // partial GPU-GPU
