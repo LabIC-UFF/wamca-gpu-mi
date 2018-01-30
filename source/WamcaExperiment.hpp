@@ -138,6 +138,8 @@ public:
             }
         }
 
+
+/*
         // TOTAL kernels
         for (int i = 0; i < MLP_MAX_NEIGHBOR; i++) {
             if (tkernels[i]) {
@@ -169,6 +171,7 @@ public:
                 EXCEPTION("Invalid move id: %d", kid);
             }
         }
+*/
 
     }
 
