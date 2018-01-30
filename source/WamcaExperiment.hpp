@@ -18,6 +18,8 @@
 
 #include "mlkernel.h"
 
+#include <sys/time.h> // gettimeofday
+
 class WAMCAExperiment
 {
 public:
@@ -205,6 +207,7 @@ public:
     }
 
 
+    // MUST GUARANTEE THAT kMin = kMax - 1
     unsigned int runWAMCA2016(int mMax = 3, int kMin = 0, int kMax = 3, int *solution = NULL, unsigned int solutionSize = 0)
     {
 //        lprintf("BEGIN WAMCA 2016 Experiments\n");
@@ -225,6 +228,9 @@ public:
         ////lprintf("RAND_SEED\t: %u\n",rng.getSeed());
 
         timeAvg = 0;
+
+        mMax = 1; // IGOR! NO MULTIPLE TESTS HERE!
+
         for(uint m=0; m < mMax; m++) {
 //            lprintf("***\n* Solution #%u\n***\n",m + 1);
 
@@ -246,7 +252,7 @@ public:
 
             ////lprintf("BEGIN PARTIAL - GPU-XPU\n");
             //for(int k=0;k < kernelCount;k++) {
-            for(int k=0; k < kMax; k++) {
+            for(int k=kMin; k < kMax; k++) {
                 MLKernel    *kernel = kernels[k];
                 //lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
                 ////lprintf("initializing kernel %d with &kernel:%p %s TOTAL=%d\n", k, kernel, kernel->name, kernel->isTotal);
@@ -511,6 +517,11 @@ public:
             }
 
             valor = solDevice->costCalc();
+            struct timeval tv;
+            gettimeofday(&tv, NULL);
+            time_t curtime=tv.tv_usec;
+
+            printf("%d \t time \t search k=\t%d \t returning value = \t%d\n",curtime, kMin, valor);
         }
 
         // TODO: APLICAR MOVIMENTOS DIRETAMENTE NA GPU! SE FOREM INDEPENDENTES FICA FACIL :)
