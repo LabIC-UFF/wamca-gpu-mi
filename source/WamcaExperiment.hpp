@@ -224,6 +224,7 @@ public:
         std::clock_t start;
         double duration; // clock duration
         uint valor = 0;
+        uint valor1 = 0;
 
         ////lprintf("RAND_SEED\t: %u\n",rng.getSeed());
 
@@ -268,6 +269,14 @@ public:
                 //kernel->solution->ldsShow(std::cout);
 
                 kernel->sendSolution();
+
+                valor1 = solDevice->costCalc();
+                struct timeval tv1;
+                gettimeofday(&tv1, NULL);
+                long curtime1=tv1.tv_sec*1000000 + tv1.tv_usec;
+
+                printf("%ld \t time \t search k=\t%d \t receiving value = \t%d\n",curtime1, kMin, valor1);
+
                 //lprintf("kernel solution sent!\n");
                 kernel->defineKernelGrid(); // TODO: precisa??
                 //lprintf("defined kernel grid!\n");
@@ -519,9 +528,9 @@ public:
             valor = solDevice->costCalc();
             struct timeval tv;
             gettimeofday(&tv, NULL);
-            time_t curtime=tv.tv_usec;
+            long curtime=tv.tv_sec*1000000 + tv.tv_usec;
 
-            printf("%d \t time \t search k=\t%d \t returning value = \t%d\n",curtime, kMin, valor);
+            printf("%ld \t time \t search k=\t%d \t returning value = \t%d\n",curtime, kMin, valor);
         }
 
         // TODO: APLICAR MOVIMENTOS DIRETAMENTE NA GPU! SE FOREM INDEPENDENTES FICA FACIL :)
