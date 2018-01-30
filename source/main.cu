@@ -41,7 +41,7 @@ envInit()
                     WARNING("Device '%s' is not suitable to this application. Device capability %d.%d < 2.0\n",
                             prop.name,prop.major,prop.minor);
             }
-            lprintf("GPU ok!\n");
+            ////lprintf("GPU ok!\n");
         }
         break;
     case cudaErrorNoDevice:
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 
     l4printf(">>>> BUILT AT %s %s\n",__DATE__,__TIME__);
 
-    lprintf("finished successfully\n");
+    ////lprintf("finished successfully\n");
 
     return 0;
 }

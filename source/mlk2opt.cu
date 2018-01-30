@@ -705,7 +705,7 @@ MLKernel2Opt::defineKernelGrid()
 void
 MLKernel2Opt::launchKernel()
 {
-    l4printf("Calling kernel %s\n",name);
+    ////l4printf("Calling kernel %s\n",name);
 
     // Update kernel calls counter
     callCount++;

@@ -770,23 +770,26 @@ MLKernelSwap::defineKernelGrid()
     //else
         maxMerge = moveElems;
 
+    /*
     l4printf("Kernel %s\tgrid(%d,%d,%d)\tblck(%d,%d,%d)\tshared=%u (%u KB)\n",
                     name,
                     grid.x,grid.y,grid.z,
                     block.x,block.y,block.z,
                     shared,shared / 1024);
+     */
 }
 
 void
 MLKernelSwap::launchKernel()
 {
-    lprintf("Calling kernel %s\n",name);
+    ////lprintf("Calling kernel %s\n",name);
 
     // Update kernel calls counter
     callCount++;
     // Kernel in execution
     flagExec = true;
 
+    /*
     lprintf("Kernel %s\tgrid(%d,%d,%d)\tblck(%d,%d,%d)\tshared=%u (%u KB)\tsize=%u\n",
                     name,
                     grid.x,grid.y,grid.z,
@@ -794,6 +797,7 @@ MLKernelSwap::launchKernel()
                     shared,shared / 1024,
                     solSize);
     lprintf("adsData=%p\n",adsData);
+    */
 
     // Calls kernel
 //    if(!isTotal)
@@ -841,4 +845,3 @@ MLKernelSwap::applyMove(MLMove &move)
     }
 #endif
 }
-

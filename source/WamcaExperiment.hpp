@@ -219,7 +219,7 @@ public:
         double duration; // clock duration
         uint valor = 0;
 
-        lprintf("RAND_SEED\t: %u\n",rng.getSeed());
+        ////lprintf("RAND_SEED\t: %u\n",rng.getSeed());
 
         timeAvg = 0;
         for(uint m=0; m < mMax; m++) {
@@ -241,17 +241,17 @@ public:
 //            solDevice->show(std::cout);
 
 
-            lprintf("BEGIN PARTIAL - GPU-XPU\n");
+            ////lprintf("BEGIN PARTIAL - GPU-XPU\n");
             //for(int k=0;k < kernelCount;k++) {
             for(int k=0; k < kMax; k++) {
                 MLKernel    *kernel = kernels[k];
                 //lprintf("initializing kernel %d with &kernel:%p\n", k, kernel);
-                lprintf("initializing kernel %d with &kernel:%p %s TOTAL=%d\n", k, kernel, kernel->name, kernel->isTotal);
+                ////lprintf("initializing kernel %d with &kernel:%p %s TOTAL=%d\n", k, kernel, kernel->name, kernel->isTotal);
 
 
                 MLMove64* h_moves = kernel->transBuffer.p_move64;
 
-                lprintf("&h_moves=%p\n", h_moves);
+                ////lprintf("&h_moves=%p\n", h_moves);
 
                 kernel->setSolution(solDevice);
                 //lprintf("kernel solution set!\n");
@@ -267,15 +267,15 @@ public:
                 //lprintf("printed data!\n");
 
 
-                lprintf("launching kernel k=%d %s!\n",k,kernel->name);
-                lprintf("kernel moveElems=%d!\n",kernel->moveElems);
+                ////lprintf("launching kernel k=%d %s!\n",k,kernel->name);
+                ////lprintf("kernel moveElems=%d!\n",kernel->moveElems);
                 gpuMemset(kernel->moveData, 0, kernel->moveDataSize);
                 gpuDeviceSynchronize();
                 start = std::clock();
                 kernel->launchKernel();
                 kernel->sync();
                 duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
-                printf("kernel time %.7f ms\n", duration);
+                ////printf("kernel time %.7f ms\n", duration);
 
                 start = std::clock();
                 // partial GPU-CPU
@@ -308,7 +308,7 @@ public:
 
 
                 // MERGE GPU-GPU (partial)
-                lprintf("kernel 2 moveElems=%d!\n",kernel->moveElems);
+                ////lprintf("kernel 2 moveElems=%d!\n",kernel->moveElems);
                 start = std::clock();
                 // partial GPU-GPU
                 kernel->mergeGPU();
@@ -329,7 +329,7 @@ public:
                     if (move.cost < 0) {
                         impr2 += move.cost;
                         countImpr2++;
-                        l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
+                        ////l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
 //                        printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
                         kernel->applyMove(move);
                     }
@@ -340,8 +340,8 @@ public:
 //				solDevice->show(std::cout);
 
 				duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
-                printf("partial GPU-GPU time %.7f ms\n", duration);
-                printf("partial GPU-GPU improvement=%d count=%d moveCount=%d\n", impr2, countImpr2, movesCount);
+                ////printf("partial GPU-GPU time %.7f ms\n", duration);
+                ////printf("partial GPU-GPU improvement=%d count=%d moveCount=%d\n", impr2, countImpr2, movesCount);
 
 
                 /*
@@ -357,17 +357,19 @@ public:
 
 
 
+/*
                 l4printf("Cost improvement: %d --> %d = %d\n",
                          int(solDevice->cost),
                          int(kernel->solution->cost),
                          int(kernel->solution->cost) - int(solDevice->cost));
+*/
 
                 kernel->getSolution(solDevice);
 //				lprintf("solution updated!\n");
 //				solDevice->show(std::cout);
             }  // end for each kernel
-            lprintf("END PARTIAL - GPU-XPU\n");
-            lprintf("-----------------------------------------\n");
+            ////lprintf("END PARTIAL - GPU-XPU\n");
+            ////lprintf("-----------------------------------------\n");
 
 
 

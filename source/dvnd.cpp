@@ -46,7 +46,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 
 	l4printf(">>>> BUILT AT %s %s\n", __DATE__, __TIME__);
 
-	lprintf("finished successfully\n");
+	////lprintf("finished successfully\n");
 	return resp;
 }
 
