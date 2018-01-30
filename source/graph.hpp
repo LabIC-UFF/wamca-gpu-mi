@@ -89,7 +89,7 @@ public:
     }
     void
     resize(int size) {
-    	printf("graph resize to %d\n", size);
+    	////printf("graph resize to %d\n", size);
         if(size != vertexMax)
             free();
 

@@ -546,8 +546,8 @@ MLKernel::init(bool solCreate)
     else
     	graphMerge.resize(solSize); // TODO: make solSize*solSize
 
-    lprintf("transBuffer size%d\n", moveDataSize);
-    lprintf("transBuffer Pointer %p\n",transBuffer);
+    ////lprintf("transBuffer size%d\n", moveDataSize);
+    ////lprintf("transBuffer Pointer %p\n",transBuffer);
     //getchar();
 
 #if LOG_LEVEL > 4
@@ -870,4 +870,3 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
 
     return cost;
 }
-
