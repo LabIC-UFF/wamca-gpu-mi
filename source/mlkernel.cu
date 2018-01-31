@@ -762,14 +762,14 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
     n = moveElems;
 #endif
 
-    lprintf("moveElems=%d\n",moveElems);
+    //lprintf("moveElems=%d\n",moveElems);
 
     // Sort moves
     sort(moves,moves + n,compMove);
 
 
 	i = 0;
-	lprintf("after sort %d (%d,%d) %d\n", i, moves[i].i, moves[i].j, moves[i].cost);
+	//lprintf("after sort %d (%d,%d) %d\n", i, moves[i].i, moves[i].j, moves[i].cost);
 
 
     // Assign moves to graph
@@ -806,7 +806,7 @@ MLKernel::mergeGreedy(MLMove64 *merge, int &count)
         graphMerge.addVertex(moves + i,0);
         //printf("id: %d  graphMerge.cost=%d\n",i, graphMerge[i]->cost);
     }
-    lprintf("Graph  %d/%d %s moves\n",graphMerge.vertexCount,n,name);
+    //lprintf("Graph  %d/%d %s moves\n",graphMerge.vertexCount,n,name);
 
     // Set conflicts (edges)
     for(i=0;i < graphMerge.vertexCount;i++) {

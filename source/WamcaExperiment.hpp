@@ -277,7 +277,7 @@ public:
                 gettimeofday(&tv1, NULL);
                 long curtime1=tv1.tv_sec*1000000 + tv1.tv_usec;
 
-                printf("%ld \t time \t search k=\t%d \t receiving value = \t%d\tnada1=\t0\tnada2=\t0\tnada=\t0\n",curtime1, kMin, valor1);
+                //printf("%ld \t time \t search k=\t%d \t receiving value = \t%d\tnada1=\t0\tnada2=\t0\tnada=\t0\n",curtime1, kMin, valor1);
 
                 //lprintf("kernel solution sent!\n");
                 kernel->defineKernelGrid(); // TODO: precisa??
@@ -317,7 +317,7 @@ public:
                     if(move.cost < 0) {
                         impr += move.cost;
                         countImpr++;
-                        printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
+                        //printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
                         //kernel->applyMove(move);
                     }
                 }
@@ -369,15 +369,8 @@ public:
 
 
 
-                 // Esta checagem não faz sentido pois as linhas que alteram os valores de impr estão comentadas, sempre daria erro
-                 printf("CHECK (impr=%d impr2=%d) (count=%d count2=%d) (imprMoves=%d imprMoves2=%d)\n", impr, impr2, countImpr, countImpr2, imprMoves, imprMoves2);
-                if((impr2==impr) && (countImpr == countImpr2) && (imprMoves == imprMoves2)) {
-                    lprintf("IMPR CHECKED OK!\n\n");
-                } else {
-                    lprintf("IMPR ERROR! :( \n\n");
-                    getchar();
-                    getchar();
-                }
+                //printf("CHECK (impr=%d impr2=%d) (count=%d count2=%d) (imprMoves=%d imprMoves2=%d)\n", impr, impr2, countImpr, countImpr2, imprMoves, imprMoves2);
+                assert((impr2==impr) && (countImpr == countImpr2) && (imprMoves == imprMoves2));
 
 
 
@@ -539,7 +532,8 @@ public:
             gettimeofday(&tv, NULL);
             long curtime=tv.tv_sec*1000000 + tv.tv_usec;
 
-            printf("%ld \t time \t search k=\t%d \t returning value = \t%d\timprov_moves=\t%d\timprov_moves2=\t%d\timprov_real=\t%d\n",curtime, kMin, valor,imprMoves, imprMoves2, valor-valor1);
+            //printf("%ld \t time \t search k=\t%d \t returning value = \t%d\timprov_moves=\t%d\timprov_moves2=\t%d\timprov_real=\t%d\n",curtime, kMin, valor,imprMoves, imprMoves2, valor-valor1);
+            //assert(valor1-valor == imprMoves); // TODO: corrigir erro de movimento!
         }
 
         // TODO: APLICAR MOVIMENTOS DIRETAMENTE NA GPU! SE FOREM INDEPENDENTES FICA FACIL :)
