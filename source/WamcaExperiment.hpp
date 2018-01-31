@@ -225,6 +225,8 @@ public:
         double duration; // clock duration
         uint valor = 0;
         uint valor1 = 0;
+        int imprMoves = 0;
+        int imprMoves2 = 0;
 
         ////lprintf("RAND_SEED\t: %u\n",rng.getSeed());
 
@@ -275,7 +277,7 @@ public:
                 gettimeofday(&tv1, NULL);
                 long curtime1=tv1.tv_sec*1000000 + tv1.tv_usec;
 
-                printf("%ld \t time \t search k=\t%d \t receiving value = \t%d\n",curtime1, kMin, valor1);
+                printf("%ld \t time \t search k=\t%d \t receiving value = \t%d\tnada1=\t0\tnada2=\t0\tnada=\t0\n",curtime1, kMin, valor1);
 
                 //lprintf("kernel solution sent!\n");
                 kernel->defineKernelGrid(); // TODO: precisa??
@@ -306,7 +308,7 @@ public:
 //	            lprintf("\n");
 
                 // MERGE GPU-CPU (partial)
-/*
+
                 movesCost = kernel->mergeGreedy(mergeBuffer,movesCount);
                 impr = 0;
                 countImpr = 0;
@@ -315,14 +317,15 @@ public:
                     if(move.cost < 0) {
                         impr += move.cost;
                         countImpr++;
-                        l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
+                        printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
                         //kernel->applyMove(move);
                     }
                 }
                 duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
-                printf("partial GPU-CPU time %.7f ms\n", duration);
-                printf("partial GPU-CPU improvement=%d count=%d moveCount=%d\n", impr, countImpr, movesCount);
-*/
+                imprMoves = impr;
+                //printf("partial GPU-CPU time %.7f ms\n", duration);
+                //printf("partial GPU-CPU improvement=%d count=%d moveCount=%d\n", impr, countImpr, movesCount);
+
 
 
                 // MERGE GPU-GPU (partial)
@@ -340,6 +343,7 @@ public:
 //	            	lprintf("%d\t",h_moves[i].cost);
 //	            lprintf("\n");
 
+                imprMoves2 = 0;
                 impr2 = 0;
                 countImpr2 = 0;
                 for (unsigned iter = 0; iter < kernel->moveElems; ++iter) {
@@ -352,6 +356,8 @@ public:
                         kernel->applyMove(move);
                     }
                 }
+                imprMoves2 = impr2;
+
 
 //                kernel->getSolution(solDevice);
 //                lprintf("solution updated!\n");
@@ -362,16 +368,17 @@ public:
                 ////printf("partial GPU-GPU improvement=%d count=%d moveCount=%d\n", impr2, countImpr2, movesCount);
 
 
-                /*
+
                  // Esta checagem não faz sentido pois as linhas que alteram os valores de impr estão comentadas, sempre daria erro
-                if((impr2==impr) && (countImpr == countImpr2)) {
+                 printf("CHECK (impr=%d impr2=%d) (count=%d count2=%d) (imprMoves=%d imprMoves2=%d)\n", impr, impr2, countImpr, countImpr2, imprMoves, imprMoves2);
+                if((impr2==impr) && (countImpr == countImpr2) && (imprMoves == imprMoves2)) {
                     lprintf("IMPR CHECKED OK!\n\n");
                 } else {
                     lprintf("IMPR ERROR! :( \n\n");
                     getchar();
                     getchar();
                 }
-                */
+
 
 
 
@@ -383,6 +390,8 @@ public:
 */
 
                 kernel->getSolution(solDevice);
+                solDevice->update();
+                solDevice->ldsUpdate();
 //				lprintf("solution updated!\n");
 //				solDevice->show(std::cout);
             }  // end for each kernel
@@ -392,23 +401,23 @@ public:
 
 
             //getchar();
-            /*
 
+/*
 
             	        lprintf("BEGIN TOTAL - GPU-XPU\n");
             	        //for(int k=0;k < tkernelCount;k++) {
-            	        for(int k=0;k < kMax;k++) {
+            	        for(int k=kMin;k < kMax;k++) {
             	        	MLKernel* tkernel = tkernels[k];
-            	        	lprintf("initializing kernel %d with &tkernel:%p %s TOTAL=%d\n", k, tkernel, tkernel->name, tkernel->isTotal);
+            	        	//lprintf("initializing kernel %d with &tkernel:%p %s TOTAL=%d\n", k, tkernel, tkernel->name, tkernel->isTotal);
 
-            	        	lprintf("&tkernel->transBuffer=%p\n", tkernel->transBuffer);
+            	        	//lprintf("&tkernel->transBuffer=%p\n", tkernel->transBuffer);
 
             	            MLMove64* h_moves = tkernel->transBuffer.p_move64;
 
-            	            lprintf("&h_moves=%p\n", h_moves);
+            	            //lprintf("&h_moves=%p\n", h_moves);
 
             	            tkernel->setSolution(solDevice);
-            	            lprintf("tkernel solution set!\n");
+            	            //lprintf("tkernel solution set!\n");
             	            //kernel->solution->show(std::cout);
             	            //kernel->solution->ldsShow(std::cout);
 
@@ -421,21 +430,21 @@ public:
             	            //lprintf("printed data!\n");
 
 
-            	            lprintf("launching kernel k=%d %s!\n",k,tkernel->name);
-            	            lprintf("kernel moveElems=%d!\n",tkernel->moveElems);
+            	            //lprintf("launching kernel k=%d %s!\n",k,tkernel->name);
+            	            //lprintf("kernel moveElems=%d!\n",tkernel->moveElems);
             	            gpuMemset(tkernel->moveData, 0, tkernel->moveDataSize);
             	            gpuDeviceSynchronize();
                             start = std::clock();
             	            tkernel->launchKernel();
             	            tkernel->sync();
             	            duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
-            	            printf("kernel time %.7f ms\n", duration);
+            	            //printf("kernel time %.7f ms\n", duration);
 
             	            start = std::clock();
             	            // partial GPU-CPU
             	            tkernel->recvResult();
             	            tkernel->sync();
-            	            lprintf("GOT RESULT OF %d ELEMS\n", tkernel->moveElems);
+            	            //lprintf("GOT RESULT OF %d ELEMS\n", tkernel->moveElems);
 
             //	            lprintf("kernel GPU moves: ");
             //	            for(unsigned i=0; i<kernel->moveElems;i++)
@@ -451,13 +460,13 @@ public:
             					if(move.cost < 0) {
             						impr += move.cost;
             						countImpr++;
-            						l4printf("tApply %s(%d,%d) = %d\n", tkernel->name, move.i, move.j, move.cost);
+            						//l4printf("tApply %s(%d,%d) = %d\n", tkernel->name, move.i, move.j, move.cost);
             						tkernel->applyMove(move);
             					}
             				}
             	            duration = (( std::clock() - start ) / (double) CLOCKS_PER_SEC) * 1000;
-            	            printf("total GPU-CPU time %.7f ms\n", duration);
-            	            printf("total GPU-CPU improvement=%d count=%d moveCount=%d\n", impr, countImpr, movesCount);
+            	            //printf("total GPU-CPU time %.7f ms\n", duration);
+            	            //printf("total GPU-CPU improvement=%d count=%d moveCount=%d\n", impr, countImpr, movesCount);
 
 
             	            lprintf("tkernel 2 moveElems=%d!\n",tkernel->moveElems);
@@ -530,7 +539,7 @@ public:
             gettimeofday(&tv, NULL);
             long curtime=tv.tv_sec*1000000 + tv.tv_usec;
 
-            printf("%ld \t time \t search k=\t%d \t returning value = \t%d\n",curtime, kMin, valor);
+            printf("%ld \t time \t search k=\t%d \t returning value = \t%d\timprov_moves=\t%d\timprov_moves2=\t%d\timprov_real=\t%d\n",curtime, kMin, valor,imprMoves, imprMoves2, valor-valor1);
         }
 
         // TODO: APLICAR MOVIMENTOS DIRETAMENTE NA GPU! SE FOREM INDEPENDENTES FICA FACIL :)
