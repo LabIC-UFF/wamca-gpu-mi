@@ -388,7 +388,7 @@ MLKernel::MLKernel(MLProblem& _problem, bool _isTotal, int kid, uint ktag) :
     tag  = ktag;
     name = nameMove[kid];
 
-    lprintf("MLKernel id=%d TOTAL=%d\n", kid, isTotal);
+//    lprintf("MLKernel id=%d TOTAL=%d\n", kid, isTotal);
 
     callCount = 0;
     mergeCount = 0;
@@ -443,7 +443,7 @@ MLKernel::reset()
 void
 MLKernel::init(bool solCreate)
 {
-    lprintf("Kernel INIT: %s TOTAL:%d\n",name, isTotal);
+//    lprintf("Kernel INIT: %s TOTAL:%d\n",name, isTotal);
 
 
 	//size_t  free,

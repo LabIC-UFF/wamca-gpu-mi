@@ -185,7 +185,7 @@ public:
                     size;
         //bool        flag;  TODO: Pra que serve??? entender.
 
-        l4printf("GPU%u\n",gpuId);
+//        l4printf("GPU%u\n",gpuId);
 
         // Get GPU properties
         gpuGetDeviceProperties(&gpuProps,gpuId);
@@ -193,14 +193,14 @@ public:
         gpuMemGetInfo(&free,&size);
         gpuMemFree = free;
 
-        l4printf("GPU%u (%s)\n",gpuId,gpuProps.name);
+//        l4printf("GPU%u (%s)\n",gpuId,gpuProps.name);
 
         // Initialize kernel
-        lprintf("GPU%u, initializing %d kernels\n", gpuId, kernelCount);
+//        lprintf("GPU%u, initializing %d kernels\n", gpuId, kernelCount);
         for (int i = 0; i < kernelCount; i++)
             kernels[i]->init(true);
 
-        lprintf("GPU%u, initializing %d tkernels\n", gpuId, tkernelCount);
+//        lprintf("GPU%u, initializing %d tkernels\n", gpuId, tkernelCount);
         for (int i = 0; i < tkernelCount; i++)
             tkernels[i]->init(true);
 
