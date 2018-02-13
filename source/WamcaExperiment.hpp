@@ -286,7 +286,7 @@ public:
 			//printf("CHECK (impr=%d impr2=%d) (count=%d count2=%d) (imprMoves=%d imprMoves2=%d)\n", impr, impr2, countImpr, countImpr2, imprMoves, imprMoves2);
 		}
 
-		void runKernel(int k, MLSolution* solDevice) {
+		void runKernel(int k) {
 			double duration; // clock duration
 			std::clock_t start;
 			int movesCount, movesCost;
@@ -383,7 +383,7 @@ public:
 			for (uint m = 0; m < mMax; m++) {
 //            lprintf("***\n* Solution #%u\n***\n",m + 1);
 
-				MLSolution* solDevice = new MLSolution(problem);
+//				MLSolution* solDevice = new MLSolution(problem);
 				// Copying initial solution
 				if (solution == NULL) {
 					solDevice->random(rng, 0.50);
@@ -402,7 +402,7 @@ public:
 				////lprintf("BEGIN PARTIAL - GPU-XPU\n");
 				//for(int k=0;k < kernelCount;k++) {
 				for (int k = kMin; k < kMax; k++) {
-					runKernel(k, solDevice);
+					runKernel(k);
 				}  // end for each kernel
 				   ////lprintf("END PARTIAL - GPU-XPU\n");
 				   ////lprintf("-----------------------------------------\n");
@@ -543,7 +543,6 @@ public:
 
 				//printf("%ld \t time \t search k=\t%d \t returning value = \t%d\timprov_moves=\t%d\timprov_moves2=\t%d\timprov_real=\t%d\n",curtime, kMin, valor,imprMoves, imprMoves2, valor-valor1);
 				//assert(valor1-valor == imprMoves); // TODO: corrigir erro de movimento!
-				delete solDevice;
 			}
 
 			// TODO: APLICAR MOVIMENTOS DIRETAMENTE NA GPU! SE FOREM INDEPENDENTES FICA FACIL :)
