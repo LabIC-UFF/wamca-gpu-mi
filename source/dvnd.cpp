@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <map>
+#include <vector>
 
 #include "WamcaExperiment.hpp"
 
@@ -33,7 +34,8 @@ extern "C" WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hos
 }
 
 extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood,
-		bool justCalc = false, unsigned int hostCode = 0) {
+		bool justCalc = false, unsigned int hostCode = 0,
+		unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	if (!justCalc) {
 		envInit();
 	}
@@ -68,7 +70,26 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		exper = new WAMCAExperiment(*problem, seed);
 	}
 //	printf("%u;%d;%p;%p\n", hostCode, neighborhood, problem, exper);
-	unsigned int resp = exper->runWAMCA2016(1, neighborhood, neighborhood + 1, solution, solutionSize);
+	std::vector<MLMove> *moves = NULL;
+	if (useMoves) {
+		moves = new std::vector<MLMove>();
+	}
+	unsigned int resp = exper->runWAMCA2016(1, neighborhood, neighborhood + 1, solution, solutionSize, moves);
+	if (useMoves) {
+		unsigned int size = moves->size();
+		printf("size: %hu, useMoves: %hu\n", size, useMoves);
+		size = size < useMoves ? size : useMoves;
+		for (unsigned int i = 0; i < size; i++) {
+			MLMove move = (*moves)[i];
+			ids[i] = move.id;
+			is[i] = move.i;
+			js[i] = move.j;
+			costs[i] = move.cost;
+			printf("id:%hu;i:%u;j:%u;c:%d\n", move.id, move.i, move.j, move.cost);
+		}
+
+		delete moves;
+	}
 
 	return resp;
 }

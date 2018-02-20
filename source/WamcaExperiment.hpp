@@ -18,6 +18,7 @@
 
 #include "mlkernel.h"
 
+#include <vector>
 #include <sys/time.h> // gettimeofday
 
 class WAMCAExperiment
@@ -206,7 +207,7 @@ public:
 
     }
 
-		void runGpuCpu(MLKernel *kernel, int &impr, int &countImpr, int &imprMoves) {
+		void runGpuCpu(MLKernel *kernel, int &impr, int &countImpr, int &imprMoves, std::vector<MLMove> *moves = NULL) {
 			int movesCount, movesCost;
 			MLMove move;
 
@@ -231,7 +232,10 @@ public:
 					impr += move.cost;
 					countImpr++;
 					//printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
-					//kernel->applyMove(move);
+					kernel->applyMove(move);
+					if (moves) {
+						moves->push_back(MLMove(move));
+					}
 				}
 			}
 //			duration = ((std::clock() - start) / (double) CLOCKS_PER_SEC) * 1000;
@@ -240,7 +244,7 @@ public:
 			//printf("partial GPU-CPU improvement=%d count=%d moveCount=%d\n", impr, countImpr, movesCount);
 		}
 
-		void runGpuGpu(MLKernel *kernel, int &impr2, int &countImpr2, int &imprMoves2) {
+		void runGpuGpu(MLKernel *kernel, int &impr2, int &countImpr2, int &imprMoves2, std::vector<MLMove> *moves = NULL) {
 			int movesCount, movesCost;
 			MLMove move;
 
@@ -271,6 +275,9 @@ public:
 					////l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
 					//                        printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
 					kernel->applyMove(move);
+					if (moves) {
+						moves->push_back(MLMove(move));
+					}
 				}
 			}
 			imprMoves2 = impr2;
@@ -286,7 +293,7 @@ public:
 			//printf("CHECK (impr=%d impr2=%d) (count=%d count2=%d) (imprMoves=%d imprMoves2=%d)\n", impr, impr2, countImpr, countImpr2, imprMoves, imprMoves2);
 		}
 
-		void runKernel(int k) {
+		void runKernel(int k, std::vector<MLMove> *moves = NULL) {
 			double duration; // clock duration
 			std::clock_t start;
 			int movesCount, movesCost;
@@ -339,8 +346,8 @@ public:
 			duration = ((std::clock() - start) / (double) CLOCKS_PER_SEC) * 1000;
 			////printf("kernel time %.7f ms\n", duration);
 
-//			runGpuCpu(kernel, impr, countImpr, imprMoves);
-			runGpuGpu(kernel, impr2, countImpr2, imprMoves2);
+//			runGpuCpu(kernel, impr, countImpr, imprMoves, moves);
+			runGpuGpu(kernel, impr2, countImpr2, imprMoves2, moves);
 //			assert((impr2 == impr) && (countImpr == countImpr2) && (imprMoves == imprMoves2));
 
 			/*
@@ -359,7 +366,7 @@ public:
 
 
     // MUST GUARANTEE THAT kMin = kMax - 1
-		unsigned int runWAMCA2016(int mMax = 3, int kMin = 0, int kMax = 3, int *solution = NULL, unsigned int solutionSize = 0) {
+		unsigned int runWAMCA2016(int mMax = 3, int kMin = 0, int kMax = 3, int *solution = NULL, unsigned int solutionSize = 0, std::vector<MLMove> *moves = NULL) {
 //        lprintf("BEGIN WAMCA 2016 Experiments\n");
 			//MLSolution  *solVnd;
 //			MLMove move;
@@ -402,7 +409,7 @@ public:
 				////lprintf("BEGIN PARTIAL - GPU-XPU\n");
 				//for(int k=0;k < kernelCount;k++) {
 				for (int k = kMin; k < kMax; k++) {
-					runKernel(k);
+					runKernel(k, moves);
 				}  // end for each kernel
 				   ////lprintf("END PARTIAL - GPU-XPU\n");
 				   ////lprintf("-----------------------------------------\n");
