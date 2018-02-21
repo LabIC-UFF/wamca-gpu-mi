@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "WamcaExperiment.hpp"
+#include "dvnd.cuh"
 
 using namespace std;
 
@@ -33,8 +34,7 @@ extern "C" WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hos
 	return experiments[hostCode] = new WAMCAExperiment(*problem, seed);
 }
 
-extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood,
-		bool justCalc = false, unsigned int hostCode = 0,
+extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood, bool justCalc = false, unsigned int hostCode = 0,
 		unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	if (!justCalc) {
 		envInit();
@@ -77,7 +77,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 	unsigned int resp = exper->runWAMCA2016(1, neighborhood, neighborhood + 1, solution, solutionSize, moves);
 	if (useMoves) {
 		unsigned int size = moves->size();
-		printf("size: %hu, useMoves: %hu\n", size, useMoves);
+//		printf("size: %hu, useMoves: %hu\n", size, useMoves);
 		size = size < useMoves ? size : useMoves;
 		for (unsigned int i = 0; i < size; i++) {
 			MLMove move = (*moves)[i];
@@ -85,7 +85,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 			is[i] = move.i;
 			js[i] = move.j;
 			costs[i] = move.cost;
-			printf("id:%hu;i:%u;j:%u;c:%d\n", move.id, move.i, move.j, move.cost);
+//			printf("id:%hu;i:%u;j:%u;c:%d\n", move.id, move.i, move.j, move.cost);
 		}
 
 		delete moves;
@@ -100,4 +100,18 @@ extern "C" void removeProblem(MLProblem * problem) {
 
 extern "C" void removeExperiment(WAMCAExperiment * exper) {
 	delete exper;
+}
+
+extern "C" int getNoConflictMoves(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL, int *selectedMoves = NULL) {
+	MLMove64 *moves = new MLMove64[useMoves];
+	for (int i = 0; i < useMoves; i++) {
+		moves[i].id = ids[i];
+		moves[i].i = is[i];
+		moves[i].j = js[i];
+		moves[i].cost = costs[i];
+		printf("id:%hu;i:%u;j:%u;c:%d\n", moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
+	}
+	int cont =  betterNoConflict(moves, useMoves, selectedMoves);
+	delete []moves;
+	return cont;
 }
