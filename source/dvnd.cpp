@@ -12,7 +12,7 @@ using namespace std;
 
 void envInit();
 
-extern "C" MLProblem * getProblem(char * file, unsigned int hostCode = 0) {
+MLProblem * getProblem(char * file, unsigned int hostCode = 0) {
 	static std::map<int, MLProblem *> problems;
 	if (problems.find(hostCode) != problems.end()) {
 		return problems[hostCode];
@@ -26,13 +26,15 @@ extern "C" MLProblem * getProblem(char * file, unsigned int hostCode = 0) {
 	return temp;
 }
 
-extern "C" WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode = 0, int seed = 500) {
+WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode = 0, int seed = 500) {
 	static std::map<int, WAMCAExperiment *> experiments;
 	if (experiments.find(hostCode) != experiments.end()) {
 		return experiments[hostCode];
 	}
 	return experiments[hostCode] = new WAMCAExperiment(*problem, seed);
 }
+
+
 
 extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood, bool justCalc = false, unsigned int hostCode = 0,
 		unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
@@ -41,7 +43,8 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 	}
 
 //	MLProblem *problem = getProblem(file, hostCode);
-	static MLProblem *problem = NULL;
+	static MLProblem *problem = getProblem(file, hostCode);
+	/*
 	if (!problem) {
 		bool costTour = true;
 		bool distRound = false;
@@ -49,6 +52,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		problem = new MLProblem(costTour, distRound, coordShift);
 		problem->load(file);
 	}
+	*/
 
 	if (justCalc) {
 //		printf("%u;%d;%p\n", hostCode, neighborhood, problem);
@@ -85,7 +89,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 			is[i] = move.i;
 			js[i] = move.j;
 			costs[i] = move.cost;
-//			printf("id:%hu;i:%u;j:%u;c:%d\n", move.id, move.i, move.j, move.cost);
+//			printf("%d;id:%hu;i:%u;j:%u;c:%d\n", i, move.id, move.i, move.j, move.cost);
 		}
 
 		delete moves;
@@ -94,24 +98,56 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 	return resp;
 }
 
-extern "C" void removeProblem(MLProblem * problem) {
+void removeProblem(MLProblem * problem) {
 	delete problem;
 }
 
-extern "C" void removeExperiment(WAMCAExperiment * exper) {
+void removeExperiment(WAMCAExperiment * exper) {
 	delete exper;
 }
 
-extern "C" int getNoConflictMoves(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL, int *selectedMoves = NULL) {
+MLMove64 * vectorsToMove64(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	MLMove64 *moves = new MLMove64[useMoves];
 	for (int i = 0; i < useMoves; i++) {
 		moves[i].id = ids[i];
 		moves[i].i = is[i];
 		moves[i].j = js[i];
 		moves[i].cost = costs[i];
-		printf("id:%hu;i:%u;j:%u;c:%d\n", moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
+//		PRINT_MOVE(i, moves[i]);
 	}
-	int cont =  betterNoConflict(moves, useMoves, selectedMoves);
-	delete []moves;
+	return moves;
+}
+
+extern "C" int getNoConflictMoves(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL,
+		int *selectedMoves = NULL) {
+	MLMove64 *moves = vectorsToMove64(useMoves, ids, is, js, costs);
+	int cont = betterNoConflict(moves, useMoves, selectedMoves);
+	delete[] moves;
 	return cont;
+}
+
+extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solutionSize, unsigned int useMoves = 0, unsigned short *ids = NULL,
+		unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
+	static MLKernel **kernels = NULL;
+	if (!kernels) {
+		kernels = new MLKernel[5];
+
+		kernels[0] = new MLKernelSwap(problem);
+		kernels[0]->init(true);
+
+		kernels[1] = new MLKernel2Opt(problem);
+		kernels[1]->init(true);
+
+		kernels[2] = new MLKernelOrOpt(problem, 1);
+		kernels[2]->init(true);
+
+		kernels[3] = new MLKernelOrOpt(problem, 2);
+		kernels[3]->init(true);
+
+		kernels[4] = new MLKernelOrOpt(problem, 3);
+		kernels[4]->init(true);
+	}
+	MLMove64 *moves = vectorsToMove64(useMoves, ids, is, js, costs);
+
+	delete[] moves;
 }

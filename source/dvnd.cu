@@ -1,58 +1,70 @@
 #include "dvnd.cuh"
 
-#define ABS(X) ((X) >= 0 ? (X) : -(X))
-#define MIN(X, Y) (((X)<(Y)) ? (X) : (Y))
-
 int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves) {
-	int *conflicts = new int[nMoves * nMoves];
-	printf("nMoves: %u\n", nMoves);
-	/*
-	 for (int i = 0; i < nMoves; i++) {
-	 for (int j = 0; j < nMoves; j++) {
-	 conflicts[i * nMoves + j] = 0;
-	 }
-	 }
-	 */
+	int *noConflicts = new int[nMoves * nMoves];
+//	printf("nMoves: %u\n", nMoves);
 	for (int i = 0; i < nMoves; i++) {
-		conflicts[i * nMoves + i] = moves[i].cost;
+		noConflicts[i * nMoves + i] = moves[i].cost;
 		for (int j = i + 1; j < nMoves; j++) {
 			if (i != j) {
-				conflicts[i * nMoves + j] = !noConflict(moves[i], moves[j]) * moves[i].cost;
+				noConflicts[i * nMoves + j] = noConflicts[j * nMoves + i] = !noConflict(moves[i], moves[j]) * moves[i].cost;
 			}
 		}
 	}
-	for (int i = 0; i < nMoves; i++) {
-		for (int j = 0; j < nMoves; j++) {
-			if (j >= i) {
-				printf("%7d ", conflicts[i * nMoves + j]);
-			} else {
-				printf("        ");
+//	PRINT_CONFLICT(noConflicts, nMoves);
+	int *tempMoves = new int[nMoves];
+	int nTempMoves, valueTempMoves, nImp, impValue;
+	nImp = 0;
+	impValue = 1;
+	for (int i = 1; i < nMoves; i++) {
+		tempMoves[0] = i;
+		nTempMoves = 1;
+		for (int j = 0; j < i; j++) {
+			if (noConflicts[i * nMoves + j]) {
+				tempMoves[nTempMoves++] = j;
 			}
+		}
+
+		/*
+		printf("listing\n");
+		for (int j = 0; j < nTempMoves; j++) {
+			printf("%d ", tempMoves[j]);
 		}
 		putchar('\n');
-	}
-	/*
-	for (int i = 0; i < nMoves; i++) {
-		for (int j = i + 1; j < nMoves; j++) {
-			conflicts[j * nMoves + j] += conflicts[i * nMoves + j];
-		}
-	}
-	for (int i = 0; i < nMoves; i++) {
-		for (int j = 0; j < nMoves; j++) {
-			if (j >= i) {
-				printf("%7d ", conflicts[i * nMoves + j]);
-			} else {
-				printf("        ");
+		*/
+
+		for (int j = 0; j < nTempMoves; j++) {
+			valueTempMoves = 0;
+			for (int k = j + 1; k < nTempMoves; ) {
+				if (!noConflicts[tempMoves[j] * nMoves + tempMoves[k]]) {
+//					printf("%d conflict %d\n", tempMoves[j], tempMoves[k]);
+					tempMoves[k] = tempMoves[--nTempMoves];
+				} else {
+//					printf("%d no conflict %d\n", tempMoves[j], tempMoves[k]);
+					k++;
+				}
 			}
+			for (int k = 0; k < nTempMoves; k++) {
+//				PRINT_MOVE(tempMoves[k], moves[tempMoves[k]]);
+				valueTempMoves += moves[tempMoves[k]].cost;
+			}
+			if (valueTempMoves < impValue) {
+				nImp = nTempMoves;
+				for (int k = 0; k < nTempMoves; k++) {
+					selectedMoves[k] = tempMoves[k];
+				}
+			}
+//			printf("value: %d\n", valueTempMoves);
 		}
-		putchar('\n');
 	}
-	*/
-	delete[] conflicts;
-	return 0;
+
+	delete[] tempMoves;
+	delete[] noConflicts;
+
+	return nImp;
 }
 
-bool noConflict(const MLMove64 &move1, const MLMove64 &move2) {
+inline bool noConflict(const MLMove64 &move1, const MLMove64 &move2) {
 	if (move1.id == MLMI_SWAP) {
 		if (move2.id == MLMI_SWAP) {
 			return (ABS(move1.i - move2.i) > 1) && (ABS(move1.i - move2.j) > 1) && (ABS(move1.j - move2.i) > 1) && (ABS(move1.j - move2.j) > 1);
