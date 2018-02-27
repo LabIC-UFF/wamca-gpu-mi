@@ -1,8 +1,11 @@
+#include <omp.h>
+
 #include "dvnd.cuh"
 
-int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves) {
+int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, int &impValue) {
 	int *noConflicts = new int[nMoves * nMoves];
 //	printf("nMoves: %u\n", nMoves);
+	#pragma omp parallel for
 	for (int i = 0; i < nMoves; i++) {
 		noConflicts[i * nMoves + i] = moves[i].cost;
 		for (int j = i + 1; j < nMoves; j++) {
@@ -12,16 +15,24 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves) {
 		}
 	}
 //	PRINT_CONFLICT(noConflicts, nMoves);
-	int *tempMoves = new int[nMoves];
-	int nTempMoves, valueTempMoves, nImp, impValue;
+	int nThreads = 1;
+	#pragma omp parallel
+	nThreads = omp_get_num_threads();
+
+	int *tempMoves = new int[nMoves * nThreads];
+	int *valueTempMoves = new int[nThreads];
+//	printf("OMP threads: %d\n", nThreads );
+	int nTempMoves, nImp;
 	nImp = 0;
 	impValue = 1;
+//	#pragma omp parallel for
 	for (int i = 1; i < nMoves; i++) {
-		tempMoves[0] = i;
+		const unsigned int tid = omp_get_thread_num();
+		tempMoves[nMoves * tid] = i;
 		nTempMoves = 1;
 		for (int j = 0; j < i; j++) {
 			if (noConflicts[i * nMoves + j]) {
-				tempMoves[nTempMoves++] = j;
+				tempMoves[nMoves * tid + nTempMoves++] = j;
 			}
 		}
 
@@ -34,11 +45,11 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves) {
 		*/
 
 		for (int j = 0; j < nTempMoves; j++) {
-			valueTempMoves = 0;
+			valueTempMoves[tid] = 0;
 			for (int k = j + 1; k < nTempMoves; ) {
-				if (!noConflicts[tempMoves[j] * nMoves + tempMoves[k]]) {
+				if (!noConflicts[tempMoves[nMoves * tid + j] * nMoves + tempMoves[nMoves * tid + k]]) {
 //					printf("%d conflict %d\n", tempMoves[j], tempMoves[k]);
-					tempMoves[k] = tempMoves[--nTempMoves];
+					tempMoves[nMoves * tid + k] = tempMoves[nMoves * tid + --nTempMoves];
 				} else {
 //					printf("%d no conflict %d\n", tempMoves[j], tempMoves[k]);
 					k++;
@@ -46,18 +57,22 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves) {
 			}
 			for (int k = 0; k < nTempMoves; k++) {
 //				PRINT_MOVE(tempMoves[k], moves[tempMoves[k]]);
-				valueTempMoves += moves[tempMoves[k]].cost;
+				valueTempMoves[tid] += moves[tempMoves[nMoves * tid + k]].cost;
 			}
-			if (valueTempMoves < impValue) {
+			#pragma omp critical
+			if (valueTempMoves[tid] < impValue) {
 				nImp = nTempMoves;
 				for (int k = 0; k < nTempMoves; k++) {
-					selectedMoves[k] = tempMoves[k];
+					selectedMoves[k] = tempMoves[nMoves * tid + k];
 				}
+				impValue = valueTempMoves[tid];
 			}
 //			printf("value: %d\n", valueTempMoves);
 		}
 	}
+//	printf("%d moves, impvalue: %d\n", nImp, impValue);
 
+	delete[] valueTempMoves;
 	delete[] tempMoves;
 	delete[] noConflicts;
 

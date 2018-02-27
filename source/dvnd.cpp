@@ -119,9 +119,9 @@ MLMove64 * vectorsToMove64(unsigned int useMoves = 0, unsigned short *ids = NULL
 }
 
 extern "C" int getNoConflictMoves(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL,
-		int *selectedMoves = NULL) {
+		int *selectedMoves = NULL, int *impValue = NULL) {
 	MLMove64 *moves = vectorsToMove64(useMoves, ids, is, js, costs);
-	int cont = betterNoConflict(moves, useMoves, selectedMoves);
+	int cont = betterNoConflict(moves, useMoves, selectedMoves, impValue[0]);
 	delete[] moves;
 	return cont;
 }
@@ -129,8 +129,10 @@ extern "C" int getNoConflictMoves(unsigned int useMoves = 0, unsigned short *ids
 extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solutionSize, unsigned int useMoves = 0, unsigned short *ids = NULL,
 		unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	static MLKernel **kernels = NULL;
+	MLProblem * problem = getProblem(file);
 	if (!kernels) {
-		kernels = new MLKernel[5];
+		/*
+		kernels = new MLKernel*[5];
 
 		kernels[0] = new MLKernelSwap(problem);
 		kernels[0]->init(true);
@@ -146,6 +148,7 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 
 		kernels[4] = new MLKernelOrOpt(problem, 3);
 		kernels[4]->init(true);
+		*/
 	}
 	MLMove64 *moves = vectorsToMove64(useMoves, ids, is, js, costs);
 
