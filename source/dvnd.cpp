@@ -26,6 +26,17 @@ MLProblem * getProblem(char * file, unsigned int hostCode = 0) {
 	return temp;
 }
 
+MLSolution* getSolution(MLProblem * problem, int *solution, unsigned int solutionSize) {
+	MLSolution* solDevice = new MLSolution(*problem);
+	solDevice->clientCount = solutionSize;
+	#pragma omp parallel for
+	for (int si = 0; si < solutionSize; si++) {
+		solDevice->clients[si] = solution[si];
+	}
+	solDevice->update();
+	return solDevice;
+}
+
 WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode = 0, int seed = 500) {
 	static std::map<int, WAMCAExperiment *> experiments;
 	if (experiments.find(hostCode) != experiments.end()) {
@@ -34,7 +45,43 @@ WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode = 0, 
 	return experiments[hostCode] = new WAMCAExperiment(*problem, seed);
 }
 
+MLMove64 * vectorsToMove64(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
+	MLMove64 *moves = new MLMove64[useMoves];
+	#pragma omp parallel for
+	for (int i = 0; i < useMoves; i++) {
+		moves[i].id = ids[i];
+		moves[i].i = is[i];
+		moves[i].j = js[i];
+		moves[i].cost = costs[i];
+//		PRINT_MOVE(i, moves[i]);
+	}
+	return moves;
+}
 
+MLMove * vectorsToMove(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
+	MLMove *moves = new MLMove[useMoves];
+	#pragma omp parallel for
+	for (int i = 0; i < useMoves; i++) {
+		moves[i].id = MLMoveId(ids[i]);
+		moves[i].i = is[i];
+		moves[i].j = js[i];
+		moves[i].cost = costs[i];
+//		PRINT_MOVE(i, moves[i]);
+	}
+	return moves;
+}
+
+void move64ToVectors(MLMove64 *moves, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL,
+		unsigned int size = 0) {
+	#pragma omp parallel for
+	for (unsigned int i = 0; i < size; i++) {
+		ids[i] = moves[i].id;
+		is[i] = moves[i].i;
+		js[i] = moves[i].j;
+		costs[i] = moves[i].cost;
+//		printf("%d;id:%hu;i:%u;j:%u;c:%d\n", i, move.id, move.i, move.j, move.cost);
+	}
+}
 
 extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood, bool justCalc = false, unsigned int hostCode = 0,
 		unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
@@ -56,12 +103,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 
 	if (justCalc) {
 //		printf("%u;%d;%p\n", hostCode, neighborhood, problem);
-		MLSolution* solDevice = new MLSolution(*problem);
-		solDevice->clientCount = solutionSize;
-		for (int si = 0; si < solutionSize; si++) {
-			solDevice->clients[si] = solution[si];
-		}
-		solDevice->update();
+		MLSolution* solDevice = getSolution(problem, solution, solutionSize);
 		unsigned int value = solDevice->costCalc();
 		delete solDevice;
 		return value;
@@ -83,13 +125,13 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		unsigned int size = moves->size();
 //		printf("size: %hu, useMoves: %hu\n", size, useMoves);
 		size = size < useMoves ? size : useMoves;
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < size; i++) {
 			MLMove move = (*moves)[i];
 			ids[i] = move.id;
 			is[i] = move.i;
 			js[i] = move.j;
 			costs[i] = move.cost;
-//			printf("%d;id:%hu;i:%u;j:%u;c:%d\n", i, move.id, move.i, move.j, move.cost);
 		}
 
 		delete moves;
@@ -106,18 +148,6 @@ void removeExperiment(WAMCAExperiment * exper) {
 	delete exper;
 }
 
-MLMove64 * vectorsToMove64(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
-	MLMove64 *moves = new MLMove64[useMoves];
-	for (int i = 0; i < useMoves; i++) {
-		moves[i].id = ids[i];
-		moves[i].i = is[i];
-		moves[i].j = js[i];
-		moves[i].cost = costs[i];
-//		PRINT_MOVE(i, moves[i]);
-	}
-	return moves;
-}
-
 extern "C" int getNoConflictMoves(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL,
 		int *selectedMoves = NULL, int *impValue = NULL) {
 	MLMove64 *moves = vectorsToMove64(useMoves, ids, is, js, costs);
@@ -130,27 +160,47 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 		unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	static MLKernel **kernels = NULL;
 	MLProblem * problem = getProblem(file);
+	// TODO Atentar para não rodar paralelamente por conta de usar variável static
 	if (!kernels) {
-		/*
 		kernels = new MLKernel*[5];
 
-		kernels[0] = new MLKernelSwap(problem);
+		kernels[0] = new MLKernelSwap(*problem);
 		kernels[0]->init(true);
 
-		kernels[1] = new MLKernel2Opt(problem);
+		kernels[1] = new MLKernel2Opt(*problem);
 		kernels[1]->init(true);
 
-		kernels[2] = new MLKernelOrOpt(problem, 1);
+		kernels[2] = new MLKernelOrOpt(*problem, 1);
 		kernels[2]->init(true);
 
-		kernels[3] = new MLKernelOrOpt(problem, 2);
+		kernels[3] = new MLKernelOrOpt(*problem, 2);
 		kernels[3]->init(true);
 
-		kernels[4] = new MLKernelOrOpt(problem, 3);
+		kernels[4] = new MLKernelOrOpt(*problem, 3);
 		kernels[4]->init(true);
-		*/
 	}
-	MLMove64 *moves = vectorsToMove64(useMoves, ids, is, js, costs);
 
+	for (int i = 0; i < 5; i++) {
+		kernels[i]->setSolution(NULL);
+	}
+	MLMove *moves = vectorsToMove(useMoves, ids, is, js, costs);
+	MLSolution* solDevice = getSolution(problem, solution, solutionSize);
+	for (int i = 0; i < 5; i++) {
+		kernels[i]->setSolution(solDevice);
+	}
+	// TODO Se os movimentos são independentes, deveria ser possível executá-los em paralelo?
+	for (int i = 0; i < useMoves; i++) {
+		kernels[ids[i]]->applyMove(moves[i]);
+	}
+
+	#pragma omp parallel for
+	for (int si = 0; si < solutionSize; si++) {
+		solution[si] = solDevice->clients[si];
+	}
+	unsigned int value = solDevice->costCalc();
+
+	delete solDevice;
 	delete[] moves;
+
+	return value;
 }

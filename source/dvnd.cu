@@ -71,6 +71,12 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 		}
 	}
 //	printf("%d moves, impvalue: %d\n", nImp, impValue);
+	// TODO debug
+	puts("selectedMoves");
+	for (int i = 0; i < nImp; i++) {
+		printf("%d ", selectedMoves[i]);
+	}
+	putchar('\n');
 
 	delete[] valueTempMoves;
 	delete[] tempMoves;

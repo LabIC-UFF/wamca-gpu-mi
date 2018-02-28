@@ -535,13 +535,12 @@ public:
 
 				 */
 
-				valor = -1;
+				valor = solDevice->costCalc();
 				// Copying initial solution back
-				if (solution != NULL) {
+				if (solution && !moves) {
 					for (int si = 0; si < solutionSize; si++) {
 						solution[si] = solDevice->clients[si];
 					}
-					valor = solDevice->costCalc();
 				}
 
 				struct timeval tv;
