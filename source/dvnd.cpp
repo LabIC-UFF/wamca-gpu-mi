@@ -180,18 +180,28 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 		kernels[4]->init(true);
 	}
 
-	for (int i = 0; i < 5; i++) {
-		kernels[i]->setSolution(NULL);
-	}
 	MLMove *moves = vectorsToMove(useMoves, ids, is, js, costs);
 	MLSolution* solDevice = getSolution(problem, solution, solutionSize);
-	for (int i = 0; i < 5; i++) {
-		kernels[i]->setSolution(solDevice);
-	}
 	// TODO Se os movimentos são independentes, deveria ser possível executá-los em paralelo?
+	printf("useMoves: %d\n", useMoves);
 	for (int i = 0; i < useMoves; i++) {
+		if (i == 0 || ids[i - 1] != ids[i]) {
+			if (i > 0) {
+				kernels[ids[i - 1]]->getSolution(solDevice);
+//				solDevice->update();
+//				solDevice->ldsUpdate();
+			}
+
+			kernels[ids[i]]->setSolution(solDevice);
+//			kernels[ids[i]]->sendSolution();
+//			kernels[ids[i]]->defineKernelGrid();
+		}
+		printf("%d-id:%d, i: %d, j: %d, cost: %d\n", i, moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
 		kernels[ids[i]]->applyMove(moves[i]);
 	}
+	kernels[ids[useMoves - 1]]->getSolution(solDevice);
+	solDevice->update();
+//	solDevice->ldsUpdate();
 
 	#pragma omp parallel for
 	for (int si = 0; si < solutionSize; si++) {
@@ -203,4 +213,5 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 	delete[] moves;
 
 	return value;
+	return 0;
 }
