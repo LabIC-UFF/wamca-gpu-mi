@@ -157,7 +157,7 @@ struct MLMove64 {
     unsigned int    id : 4;
     unsigned int    i : 14;
     unsigned int    j : 14;
-    int     cost;    // Goddamn Eyder...
+    int     cost;    // REMOVED :32 !! Goddamn Eyder...
 };
 
 

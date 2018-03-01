@@ -208,8 +208,10 @@ hash(byte *data, uint size)
     return hash;
 }
 
+
+// update() funcao que atualiza weights e calcula custo de solucao
 void
-MLSolution::update()
+MLSolution::update() // seta vetor weights (distancia entre no anterior e atual)
 {
     uint    k;
 
@@ -223,6 +225,8 @@ MLSolution::update()
     }
 }
 
+
+// calcula custo de solucao baseado nos weights existentes
 uint
 MLSolution::costCalc()
 {
@@ -408,6 +412,8 @@ MLSolution::ldsChecksum(uint max)
     return sum;
 }
 
+
+// nao sei o que é
 ullong
 MLSolution::ldsUpdate()
 {

@@ -833,12 +833,14 @@ MLKernelSwap::applyMove(MLMove &move)
     if(j + 1 < solution->clientCount)
         solution->weights[j + 1] = solution->dist(j,j + 1);
 
+    // DEFINIR -DMLP_COST_CHECK
+
 #ifdef MLP_COST_CHECK
     if(problem.params.checkCost) {
         uint ccost = solution->costCalc();
         l4printf("CHECK COST: %s,\tcost=%u, check=%u\n",name,solution->cost,ccost);
         if(solution->cost != ccost) {
-            lprintf("%s(%u,%u): wrong=%u, right=%u\n",name,move.i,move.j,solution->cost,ccost);
+            lprintf("%s(%u,%u): wrong=%u, right=%u\n",name ,move.i ,move.j ,solution->cost ,ccost );
             solution->showCostCalc("SOLUTION: ");
             EXCEPTION("INVALID COST: %s",problem.name);
         }

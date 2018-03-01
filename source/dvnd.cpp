@@ -33,7 +33,7 @@ MLSolution* getSolution(MLProblem * problem, int *solution, unsigned int solutio
 	for (int si = 0; si < solutionSize; si++) {
 		solDevice->clients[si] = solution[si];
 	}
-	solDevice->update();
+	solDevice->update(); // ldsUpdate
 	return solDevice;
 }
 
