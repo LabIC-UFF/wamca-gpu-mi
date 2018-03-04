@@ -29,11 +29,12 @@ MLProblem * getProblem(char * file, unsigned int hostCode = 0) {
 MLSolution* getSolution(MLProblem * problem, int *solution, unsigned int solutionSize) {
 	MLSolution* solDevice = new MLSolution(*problem);
 	solDevice->clientCount = solutionSize;
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for (int si = 0; si < solutionSize; si++) {
 		solDevice->clients[si] = solution[si];
 	}
 	solDevice->update(); // ldsUpdate
+	solDevice->ldsUpdate();
 	return solDevice;
 }
 
@@ -47,7 +48,7 @@ WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode = 0, 
 
 MLMove64 * vectorsToMove64(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	MLMove64 *moves = new MLMove64[useMoves];
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for (int i = 0; i < useMoves; i++) {
 		moves[i].id = ids[i];
 		moves[i].i = is[i];
@@ -73,7 +74,7 @@ MLMove * vectorsToMove(unsigned int useMoves = 0, unsigned short *ids = NULL, un
 
 void move64ToVectors(MLMove64 *moves, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL,
 		unsigned int size = 0) {
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for (unsigned int i = 0; i < size; i++) {
 		ids[i] = moves[i].id;
 		is[i] = moves[i].i;
@@ -104,7 +105,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 	if (justCalc) {
 //		printf("%u;%d;%p\n", hostCode, neighborhood, problem);
 		MLSolution* solDevice = getSolution(problem, solution, solutionSize);
-		unsigned int value = solDevice->costCalc();
+		unsigned int value = solDevice->cost;
 		delete solDevice;
 		return value;
 	}
@@ -125,7 +126,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		unsigned int size = moves->size();
 //		printf("size: %hu, useMoves: %hu\n", size, useMoves);
 		size = size < useMoves ? size : useMoves;
-		#pragma omp parallel for
+//		#pragma omp parallel for
 		for (unsigned int i = 0; i < size; i++) {
 			MLMove move = (*moves)[i];
 			ids[i] = move.id;
@@ -160,7 +161,6 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 		unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	static MLKernel **kernels = NULL;
 	MLProblem * problem = getProblem(file);
-	// TODO Atentar para não rodar paralelamente por conta de usar variável static
 	if (!kernels) {
 		kernels = new MLKernel*[5];
 
@@ -182,32 +182,37 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 
 	MLMove *moves = vectorsToMove(useMoves, ids, is, js, costs);
 	MLSolution* solDevice = getSolution(problem, solution, solutionSize);
-	// TODO Se os movimentos são independentes, deveria ser possível executá-los em paralelo?
 	printf("useMoves: %d\n", useMoves);
+	for (int i = 0; i < useMoves; i++) {
+		printf("%d-id:%d, i: %3d, j: %3d, cost: %9d\n", i, moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
+	}
+	useMoves = 1;
 	for (int i = 0; i < useMoves; i++) {
 		if (i == 0 || ids[i - 1] != ids[i]) {
 			if (i > 0) {
 				kernels[ids[i - 1]]->getSolution(solDevice);
-//				solDevice->update();
-//				solDevice->ldsUpdate();
+				solDevice->update();
+				solDevice->ldsUpdate();
 			}
 
 			kernels[ids[i]]->setSolution(solDevice);
 //			kernels[ids[i]]->sendSolution();
 //			kernels[ids[i]]->defineKernelGrid();
 		}
-		printf("%d-id:%d, i: %d, j: %d, cost: %d\n", i, moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
+//		printf("%d-id:%d, i: %d, j: %d, cost: %d\n", i, moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
 		kernels[ids[i]]->applyMove(moves[i]);
 	}
 	kernels[ids[useMoves - 1]]->getSolution(solDevice);
 	solDevice->update();
-//	solDevice->ldsUpdate();
+	solDevice->ldsUpdate();
 
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for (int si = 0; si < solutionSize; si++) {
 		solution[si] = solDevice->clients[si];
 	}
-	unsigned int value = solDevice->costCalc();
+	solDevice->update();
+	solDevice->ldsUpdate();
+	unsigned int value = solDevice->cost;
 
 	delete solDevice;
 	delete[] moves;

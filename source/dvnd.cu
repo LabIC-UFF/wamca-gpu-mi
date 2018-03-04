@@ -5,7 +5,7 @@
 int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, int &impValue) {
 	int *noConflicts = new int[nMoves * nMoves];
 //	printf("nMoves: %u\n", nMoves);
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for (int i = 0; i < nMoves; i++) {
 		noConflicts[i * nMoves + i] = moves[i].cost;
 		for (int j = i + 1; j < nMoves; j++) {
@@ -16,7 +16,7 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 	}
 //	PRINT_CONFLICT(noConflicts, nMoves);
 	int nThreads = 1;
-	#pragma omp parallel
+//	#pragma omp parallel
 	nThreads = omp_get_num_threads();
 
 	int *tempMoves = new int[nMoves * nThreads];
@@ -59,7 +59,7 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 //				PRINT_MOVE(tempMoves[k], moves[tempMoves[k]]);
 				valueTempMoves[tid] += moves[tempMoves[nMoves * tid + k]].cost;
 			}
-			#pragma omp critical
+//			#pragma omp critical
 			if (valueTempMoves[tid] < impValue) {
 				nImp = nTempMoves;
 				for (int k = 0; k < nTempMoves; k++) {
