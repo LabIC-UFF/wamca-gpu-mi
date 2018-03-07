@@ -905,6 +905,8 @@ MLKernelOrOpt::launchKernel()
 
     // Calls kernel
 //    if(!isTotal)
+//    	std::cout << "MLKernelOrOpt" << tag << "::launchKernel - grid(x: " << grid.x << ", y: " << grid.y << ", z: " << grid.z
+//			<< ") block(x: " << block.x << ", y: " << block.y << ", z: " << block.z << ") shared: " << shared << std::endl;
     	kernelOrOpt<<<grid,block,shared,stream>>>(adsData,moveData,tag,solSize);
 //    else
 //    	kernelOrOptTotal<<<grid,block,shared,stream>>>(adsData,moveData,tag,solSize);
