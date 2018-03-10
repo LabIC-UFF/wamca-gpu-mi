@@ -248,9 +248,6 @@ public:
 			int movesCount, movesCost;
 			MLMove move;
 
-			//kernel->mergeGPU();
-//			movesCost = kernel->mergeGreedy(mergeBuffer, movesCount);
-
 			// MERGE GPU-GPU (partial)
 			////lprintf("kernel 2 moveElems=%d!\n",kernel->moveElems);
 //			std::clock_t start = std::clock();
@@ -271,7 +268,6 @@ public:
 			impr2 = 0;
 			countImpr2 = 0;
 			for (unsigned iter = 0; iter < kernel->moveElems; ++iter) {
-//				move64ToMove(move, mergeBuffer[iter]);
 				move64ToMove(move, h_moves[iter]);
 				if (move.cost < 0) {
 					impr2 += move.cost;
@@ -545,14 +541,13 @@ public:
 
 				 */
 
-				solDevice->update();
-				solDevice->ldsUpdate();
-				valor = solDevice->cost;
+				valor = -1;
 				// Copying initial solution back
 				if (solution && !moves) {
 					for (int si = 0; si < solutionSize; si++) {
 						solution[si] = solDevice->clients[si];
 					}
+					valor = solDevice->costCalc();
 				}
 
 				struct timeval tv;

@@ -801,8 +801,8 @@ MLKernelSwap::launchKernel()
 
     // Calls kernel
 //    if(!isTotal)
-//    	std::cout << "MLKernelSwap::launchKernel - grid(x: " << grid.x << ", y: " << grid.y << ", z: " << grid.z
-//    		<< ") block(x: " << block.x << ", y: " << block.y << ", z: " << block.z << ") shared: " << shared << std::endl;
+	//std::cout << "MLKernelSwap::launchKernel - grid(x: " << grid.x << ", y: " << grid.y << ", z: " << grid.z
+    	//	<< ") block(x: " << block.x << ", y: " << block.y << ", z: " << block.z << ") shared: " << shared << std::endl;
     	kernelSwap<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
 //    else
 //    	kernelSwapTotal<<<grid,block,shared,stream>>>(adsData,moveData,solSize);
