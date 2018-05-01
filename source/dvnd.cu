@@ -14,7 +14,7 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 			}
 		}
 	}
-//	PRINT_CONFLICT(noConflicts, nMoves);
+	PRINT_CONFLICT(noConflicts, nMoves);
 	int nThreads = 1;
 //	#pragma omp parallel
 	nThreads = omp_get_num_threads();

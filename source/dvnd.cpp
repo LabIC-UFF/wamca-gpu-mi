@@ -182,11 +182,11 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 
 	MLMove *moves = vectorsToMove(useMoves, ids, is, js, costs);
 	MLSolution* solDevice = getSolution(problem, solution, solutionSize);
+	useMoves = 2;
 	printf("useMoves: %d\n", useMoves);
 	for (int i = 0; i < useMoves; i++) {
 		printf("%d-id:%d, i: %3d, j: %3d, cost: %9d\n", i, moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
 	}
-	useMoves = 1;
 	for (int i = 0; i < useMoves; i++) {
 		if (i == 0 || ids[i - 1] != ids[i]) {
 			if (i > 0) {
@@ -218,5 +218,4 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 	delete[] moves;
 
 	return value;
-	return 0;
 }
