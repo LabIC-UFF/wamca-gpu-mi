@@ -182,8 +182,8 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 
 	MLMove *moves = vectorsToMove(useMoves, ids, is, js, costs);
 	MLSolution* solDevice = getSolution(problem, solution, solutionSize);
-	useMoves = 2;
-	printf("useMoves: %d\n", useMoves);
+//	useMoves = 2;
+	printf("\nuseMoves: %d\n", useMoves);
 	for (int i = 0; i < useMoves; i++) {
 		printf("%d-id:%d, i: %3d, j: %3d, cost: %9d\n", i, moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
 	}
@@ -202,17 +202,20 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 //		printf("%d-id:%d, i: %d, j: %d, cost: %d\n", i, moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
 		kernels[ids[i]]->applyMove(moves[i]);
 	}
-	kernels[ids[useMoves - 1]]->getSolution(solDevice);
-	solDevice->update();
-	solDevice->ldsUpdate();
+	unsigned int value = 0;
+	if (useMoves) {
+		kernels[ids[useMoves - 1]]->getSolution(solDevice);
+		solDevice->update();
+		solDevice->ldsUpdate();
 
-//	#pragma omp parallel for
-	for (int si = 0; si < solutionSize; si++) {
-		solution[si] = solDevice->clients[si];
+	//	#pragma omp parallel for
+		for (int si = 0; si < solutionSize; si++) {
+			solution[si] = solDevice->clients[si];
+		}
+		solDevice->update();
+		solDevice->ldsUpdate();
+		unsigned int value = solDevice->cost;
 	}
-	solDevice->update();
-	solDevice->ldsUpdate();
-	unsigned int value = solDevice->cost;
 
 	delete solDevice;
 	delete[] moves;
