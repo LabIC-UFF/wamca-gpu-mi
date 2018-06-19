@@ -61,7 +61,7 @@ MLMove64 * vectorsToMove64(unsigned int useMoves = 0, unsigned short *ids = NULL
 
 MLMove * vectorsToMove(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	MLMove *moves = new MLMove[useMoves];
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for (int i = 0; i < useMoves; i++) {
 		moves[i].id = MLMoveId(ids[i]);
 		moves[i].i = is[i];
@@ -200,6 +200,8 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 //			kernels[ids[i]]->defineKernelGrid();
 		}
 //		printf("%d-id:%d, i: %d, j: %d, cost: %d\n", i, moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
+//		kernels[ids[i]]->recvResult();
+//		kernels[ids[i]]->sync();
 		kernels[ids[i]]->applyMove(moves[i]);
 	}
 	unsigned int value = 0;

@@ -832,8 +832,9 @@ MLKernelSwap::applyMove(MLMove &move)
     solution->weights[i + 1] = solution->dist(i,i + 1);
 
     solution->weights[j] = solution->dist(j - 1,j);
-    if(j + 1 < solution->clientCount)
+    if(j + 1 < solution->clientCount) {
         solution->weights[j + 1] = solution->dist(j,j + 1);
+    }
 
     // DEFINIR -DMLP_COST_CHECK
 
