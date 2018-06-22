@@ -35,7 +35,8 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 		std::sort(movesIndex, movesIndex + nMoves, ordenaCrescente);
 	}
 
-	#pragma omp parallel for
+	// Criar as threads não necessariamente melhora a performance e adiciona aleatoriedade
+//	#pragma omp parallel for
 	for (int i = 0; i < nMoves; i++) {
 		for (int j = i + 1; j < nMoves; j++) {
 			if (!noConflict(movesIndex[i].move->id, movesIndex[i].move->i, movesIndex[i].move->j, movesIndex[j].move->id, movesIndex[j].move->i, movesIndex[j].move->j)) {
@@ -50,8 +51,11 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 	#pragma omp parallel for
 	for (int i = 0; i < nMoves; i++) {
 		if (movesIndex[i].index != -1) {
-			selectedMoves[selectedMovesLen++] = movesIndex[i].index;
-			impValue += movesIndex[i].move->cost;
+			#pragma omp critical
+			{
+				selectedMoves[selectedMovesLen++] = movesIndex[i].index;
+				impValue += movesIndex[i].move->cost;
+			}
 		}
 	}
 
