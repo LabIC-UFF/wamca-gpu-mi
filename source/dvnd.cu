@@ -8,8 +8,8 @@ struct MoveIndex {
 	unsigned int index;
 };
 
-bool ordenaCrescente(MoveIndex *x, MoveIndex *y) { return (x->move->cost < y->move->cost); }
-bool ordenaDecrescente(MoveIndex *x, MoveIndex *y) { return (x->move->cost > y->move->cost); }
+bool ordenaCrescente(const MoveIndex &x, const MoveIndex &y) { return (x.move->cost < y.move->cost); }
+bool ordenaDecrescente(const MoveIndex &x, const MoveIndex &y) { return (x.move->cost > y.move->cost); }
 
 extern "C" bool noConflict(unsigned short id1, unsigned int i1, unsigned int j1, unsigned short id2, unsigned int i2, unsigned int j2) {
 	MLMove64 move1, move2;
@@ -22,18 +22,24 @@ extern "C" bool noConflict(unsigned short id1, unsigned int i1, unsigned int j1,
 	return noConflict(move1, move2);
 }
 
-int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, int &impValue) {
+int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, int &impValue, bool maximize) {
 	MoveIndex movesIndex[nMoves];
 	for (int i = 0; i < nMoves; i++) {
 		movesIndex[i].move = moves + i;
 		movesIndex[i].index = i;
 	}
 
-//	std::sort(movesIndex, movesIndex + nMoves, ordenaDecrescente);
+	if (!maximize) {
+		std::sort(movesIndex, movesIndex + nMoves, ordenaDecrescente);
+	} else {
+		std::sort(movesIndex, movesIndex + nMoves, ordenaCrescente);
+	}
+
+	#pragma omp parallel for
 	for (int i = 0; i < nMoves; i++) {
 		for (int j = i + 1; j < nMoves; j++) {
 			if (!noConflict(movesIndex[i].move->id, movesIndex[i].move->i, movesIndex[i].move->j, movesIndex[j].move->id, movesIndex[j].move->i, movesIndex[j].move->j)) {
-				printf("conflict %d-%d\n", i, j);
+//				printf("conflict %d-%d\n", i, j);
 				movesIndex[i].index = -1;
 				break;
 			}
@@ -41,6 +47,7 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 	}
 
 	int selectedMovesLen = impValue = 0;
+	#pragma omp parallel for
 	for (int i = 0; i < nMoves; i++) {
 		if (movesIndex[i].index != -1) {
 			selectedMoves[selectedMovesLen++] = movesIndex[i].index;

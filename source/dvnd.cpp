@@ -150,9 +150,9 @@ void removeExperiment(WAMCAExperiment * exper) {
 }
 
 extern "C" int getNoConflictMoves(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL,
-		int *selectedMoves = NULL, int *impValue = NULL) {
+		int *selectedMoves = NULL, int *impValue = NULL, bool maximize = false) {
 	MLMove64 *moves = vectorsToMove64(useMoves, ids, is, js, costs);
-	int cont = betterNoConflict(moves, useMoves, selectedMoves, impValue[0]);
+	int cont = betterNoConflict(moves, useMoves, selectedMoves, impValue[0], maximize);
 	delete[] moves;
 	return cont;
 }

@@ -22,5 +22,6 @@
 	} }
 #define PRINT_MOVE(I, M) printf("%d;id:%hu;i:%u;j:%u;c:%d\n", I, (M).id, (M).i, (M).j, (M).cost)
 
-int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, int &impValue);
+int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, int &impValue, bool maximize);
 bool noConflict(const MLMove64 &move1, const MLMove64 &move2);
+extern "C" bool noConflict(unsigned short id1, unsigned int i1, unsigned int j1, unsigned short id2, unsigned int i2, unsigned int j2);
