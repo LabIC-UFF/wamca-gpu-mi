@@ -29,7 +29,7 @@ MLProblem * getProblem(char * file, unsigned int hostCode = 0) {
 MLSolution* getSolution(MLProblem * problem, int *solution, unsigned int solutionSize) {
 	MLSolution* solDevice = new MLSolution(*problem);
 	solDevice->clientCount = solutionSize;
-//	#pragma omp parallel for
+	#pragma omp parallel for
 	for (int si = 0; si < solutionSize; si++) {
 		solDevice->clients[si] = solution[si];
 	}
@@ -48,7 +48,7 @@ WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode = 0, 
 
 MLMove64 * vectorsToMove64(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	MLMove64 *moves = new MLMove64[useMoves];
-//	#pragma omp parallel for
+	#pragma omp parallel for
 	for (int i = 0; i < useMoves; i++) {
 		moves[i].id = ids[i];
 		moves[i].i = is[i];
@@ -61,7 +61,7 @@ MLMove64 * vectorsToMove64(unsigned int useMoves = 0, unsigned short *ids = NULL
 
 MLMove * vectorsToMove(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	MLMove *moves = new MLMove[useMoves];
-//	#pragma omp parallel for
+	#pragma omp parallel for
 	for (int i = 0; i < useMoves; i++) {
 		moves[i].id = MLMoveId(ids[i]);
 		moves[i].i = is[i];
@@ -74,7 +74,7 @@ MLMove * vectorsToMove(unsigned int useMoves = 0, unsigned short *ids = NULL, un
 
 void move64ToVectors(MLMove64 *moves, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL,
 		unsigned int size = 0) {
-//	#pragma omp parallel for
+	#pragma omp parallel for
 	for (unsigned int i = 0; i < size; i++) {
 		ids[i] = moves[i].id;
 		is[i] = moves[i].i;
@@ -126,7 +126,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		unsigned int size = moves->size();
 //		printf("size: %hu, useMoves: %hu\n", size, useMoves);
 		size = size < useMoves ? size : useMoves;
-//		#pragma omp parallel for
+		#pragma omp parallel for
 		for (unsigned int i = 0; i < size; i++) {
 			MLMove move = (*moves)[i];
 			ids[i] = move.id;
@@ -182,11 +182,12 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 
 	MLMove *moves = vectorsToMove(useMoves, ids, is, js, costs);
 	MLSolution* solDevice = getSolution(problem, solution, solutionSize);
-//	useMoves = 2;
+	/*
 	printf("\nuseMoves: %d\n", useMoves);
 	for (int i = 0; i < useMoves; i++) {
 		printf("%d-id:%d, i: %3d, j: %3d, cost: %9d\n", i, moves[i].id, moves[i].i, moves[i].j, moves[i].cost);
 	}
+	*/
 	for (int i = 0; i < useMoves; i++) {
 		if (i == 0 || ids[i - 1] != ids[i]) {
 			if (i > 0) {
@@ -210,7 +211,7 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 		solDevice->update();
 		solDevice->ldsUpdate();
 
-	//	#pragma omp parallel for
+		#pragma omp parallel for
 		for (int si = 0; si < solutionSize; si++) {
 			solution[si] = solDevice->clients[si];
 		}

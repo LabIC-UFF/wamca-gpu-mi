@@ -1,119 +1,96 @@
+#include <algorithm>
 #include <omp.h>
 
 #include "dvnd.cuh"
 
+struct MoveIndex {
+	MLMove64 *move;
+	unsigned int index;
+};
+
+bool ordenaCrescente(MoveIndex *x, MoveIndex *y) { return (x->move->cost < y->move->cost); }
+bool ordenaDecrescente(MoveIndex *x, MoveIndex *y) { return (x->move->cost > y->move->cost); }
+
+extern "C" bool noConflict(unsigned short id1, unsigned int i1, unsigned int j1, unsigned short id2, unsigned int i2, unsigned int j2) {
+	MLMove64 move1, move2;
+	move1.id = id1;
+	move1.i = i1;
+	move1.j = j1;
+	move2.id = id2;
+	move2.i = i2;
+	move2.j = j2;
+	return noConflict(move1, move2);
+}
+
 int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, int &impValue) {
-	int *noConflicts = new int[nMoves * nMoves];
-//	printf("nMoves: %u\n", nMoves);
-//	#pragma omp parallel for
+	MoveIndex movesIndex[nMoves];
 	for (int i = 0; i < nMoves; i++) {
-		noConflicts[i * nMoves + i] = moves[i].cost;
+		movesIndex[i].move = moves + i;
+		movesIndex[i].index = i;
+	}
+
+//	std::sort(movesIndex, movesIndex + nMoves, ordenaDecrescente);
+	for (int i = 0; i < nMoves; i++) {
 		for (int j = i + 1; j < nMoves; j++) {
-			if (i != j) {
-				noConflicts[i * nMoves + j] = noConflicts[j * nMoves + i] = !noConflict(moves[i], moves[j]) * moves[i].cost;
+			if (!noConflict(movesIndex[i].move->id, movesIndex[i].move->i, movesIndex[i].move->j, movesIndex[j].move->id, movesIndex[j].move->i, movesIndex[j].move->j)) {
+				printf("conflict %d-%d\n", i, j);
+				movesIndex[i].index = -1;
+				break;
 			}
 		}
 	}
-	PRINT_CONFLICT(noConflicts, nMoves);
-	int nThreads = 1;
-//	#pragma omp parallel
-	nThreads = omp_get_num_threads();
 
-	int *tempMoves = new int[nMoves * nThreads];
-	int *valueTempMoves = new int[nThreads];
-//	printf("OMP threads: %d\n", nThreads );
-	int nTempMoves, nImp;
-	nImp = 0;
-	impValue = 1;
-//	#pragma omp parallel for
-	for (int i = 1; i < nMoves; i++) {
-		const unsigned int tid = omp_get_thread_num();
-		tempMoves[nMoves * tid] = i;
-		nTempMoves = 1;
-		for (int j = 0; j < i; j++) {
-			if (noConflicts[i * nMoves + j]) {
-				tempMoves[nMoves * tid + nTempMoves++] = j;
-			}
-		}
-
-		/*
-		printf("listing\n");
-		for (int j = 0; j < nTempMoves; j++) {
-			printf("%d ", tempMoves[j]);
-		}
-		putchar('\n');
-		*/
-
-		for (int j = 0; j < nTempMoves; j++) {
-			valueTempMoves[tid] = 0;
-			for (int k = j + 1; k < nTempMoves; ) {
-				if (!noConflicts[tempMoves[nMoves * tid + j] * nMoves + tempMoves[nMoves * tid + k]]) {
-//					printf("%d conflict %d\n", tempMoves[j], tempMoves[k]);
-					tempMoves[nMoves * tid + k] = tempMoves[nMoves * tid + --nTempMoves];
-				} else {
-//					printf("%d no conflict %d\n", tempMoves[j], tempMoves[k]);
-					k++;
-				}
-			}
-			for (int k = 0; k < nTempMoves; k++) {
-//				PRINT_MOVE(tempMoves[k], moves[tempMoves[k]]);
-				valueTempMoves[tid] += moves[tempMoves[nMoves * tid + k]].cost;
-			}
-//			#pragma omp critical
-			if (valueTempMoves[tid] < impValue) {
-				nImp = nTempMoves;
-				for (int k = 0; k < nTempMoves; k++) {
-					selectedMoves[k] = tempMoves[nMoves * tid + k];
-				}
-				impValue = valueTempMoves[tid];
-			}
-//			printf("value: %d\n", valueTempMoves);
+	int selectedMovesLen = impValue = 0;
+	for (int i = 0; i < nMoves; i++) {
+		if (movesIndex[i].index != -1) {
+			selectedMoves[selectedMovesLen++] = movesIndex[i].index;
+			impValue += movesIndex[i].move->cost;
 		}
 	}
-//	printf("%d moves, impvalue: %d\n", nImp, impValue);
-	// TODO debug
-	puts("selectedMoves");
-	for (int i = 0; i < nImp; i++) {
-		printf("%d ", selectedMoves[i]);
-	}
-	putchar('\n');
 
-	delete[] valueTempMoves;
-	delete[] tempMoves;
-	delete[] noConflicts;
-
-	return nImp;
+	return selectedMovesLen;
 }
 
 inline bool noConflict(const MLMove64 &move1, const MLMove64 &move2) {
+//	putchar('\n');
 	if (move1.id == MLMI_SWAP) {
+//		printf("swap x ");
 		if (move2.id == MLMI_SWAP) {
+//			printf("swap\n");
 			return (ABS(move1.i - move2.i) > 1) && (ABS(move1.i - move2.j) > 1) && (ABS(move1.j - move2.i) > 1) && (ABS(move1.j - move2.j) > 1);
 		} else if (move2.id == MLMI_2OPT) {
+//			printf("2-opt\n");
 			return ((move1.i < move2.i - 1) || (move1.i > move2.j - 1)) && ((move1.j < move2.i - 1) || (move1.j > move2.j + 1));
 		} else {
 			const unsigned int k2 = move2.id == MLMI_OROPT1 ? 1 : (move2.id == MLMI_OROPT2 ? 2 : 3);
+//			printf("oropt-%u\n", k2);
 			return (move1.j < MIN(move2.i, move2.j) - 1) || (move1.i > MAX(move2.i, move2.j) + k2)
 					|| ((move1.i < MIN(move2.i, move2.j) - 1) && (move1.j > MAX(move2.i, move2.j) + k2));
 		}
 	} else if (move1.id == MLMI_2OPT) {
+//		printf("2-opt x ");
 		if (move2.id == MLMI_SWAP) {
 			return ((move2.i < move1.i - 1) || (move2.i > move1.j + 1)) && ((move2.j < move1.i - 1) || (move2.j > move1.j + 1));
 		} else if (move2.id == MLMI_2OPT) {
+//			printf("2-opt\n");
 			return (move1.j < move2.i - 1) || (move1.i > move2.j + 1) || (move2.j > move1.i - 1) || (move2.i > move1.j + 1);
 		} else {
 			const unsigned int k2 = move2.id == MLMI_OROPT1 ? 1 : (move2.id == MLMI_OROPT2 ? 2 : 3);
+//			printf("oropt-%u\n", k2);
 			return (move1.i > MAX(move2.i, move2.j) + k2) || (move1.j < MIN(move2.i, move2.j) - 1);
 		}
 	} else {
 		const unsigned int k1 = move1.id == MLMI_OROPT1 ? 1 : (move1.id == MLMI_OROPT2 ? 2 : 3);
+//		printf("oropt-%u x ", k1);
 		if (move2.id == MLMI_SWAP) {
 			return (move2.j < MIN(move1.i, move2.i) - 1) || (move2.i > MAX(move1.i, move2.i) + k1)
 					|| ((move2.i < MIN(move1.i, move2.i) - 1) && (move2.j > MAX(move1.i, move2.i) + k1));
 		} else if (move2.id == MLMI_2OPT) {
+//			printf("2-opt\n");
 			return (move2.j < MIN(move1.i, move1.j) - 1) || (move2.i > MAX(move1.i, move1.j) + k1);
 		} else {
 			const unsigned int k2 = move2.id == MLMI_OROPT1 ? 1 : (move2.id == MLMI_OROPT2 ? 2 : 3);
+//			printf("oropt-%u\n", k2);
 			return (MAX(move1.i, move1.j) + k1 < MIN(move2.i, move2.j)) || (MIN(move1.i, move1.j) > MAX(move2.i, move2.j) + k2);
 		}
 	}
