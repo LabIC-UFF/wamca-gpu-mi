@@ -29,7 +29,6 @@ MLProblem * getProblem(char * file, unsigned int hostCode = 0) {
 MLSolution* getSolution(MLProblem * problem, int *solution, unsigned int solutionSize) {
 	MLSolution* solDevice = new MLSolution(*problem);
 	solDevice->clientCount = solutionSize;
-	#pragma omp parallel for
 	for (int si = 0; si < solutionSize; si++) {
 		solDevice->clients[si] = solution[si];
 	}
@@ -48,7 +47,6 @@ WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode = 0, 
 
 MLMove64 * vectorsToMove64(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	MLMove64 *moves = new MLMove64[useMoves];
-	#pragma omp parallel for
 	for (int i = 0; i < useMoves; i++) {
 		moves[i].id = ids[i];
 		moves[i].i = is[i];
@@ -61,7 +59,6 @@ MLMove64 * vectorsToMove64(unsigned int useMoves = 0, unsigned short *ids = NULL
 
 MLMove * vectorsToMove(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	MLMove *moves = new MLMove[useMoves];
-	#pragma omp parallel for
 	for (int i = 0; i < useMoves; i++) {
 		moves[i].id = MLMoveId(ids[i]);
 		moves[i].i = is[i];
@@ -74,7 +71,6 @@ MLMove * vectorsToMove(unsigned int useMoves = 0, unsigned short *ids = NULL, un
 
 void move64ToVectors(MLMove64 *moves, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL,
 		unsigned int size = 0) {
-	#pragma omp parallel for
 	for (unsigned int i = 0; i < size; i++) {
 		ids[i] = moves[i].id;
 		is[i] = moves[i].i;
@@ -85,7 +81,7 @@ void move64ToVectors(MLMove64 *moves, unsigned short *ids = NULL, unsigned int *
 }
 
 extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood, bool justCalc = false, unsigned int hostCode = 0,
-		unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
+		unsigned int *useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	if (!justCalc) {
 		envInit();
 	}
@@ -118,15 +114,14 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 	}
 //	printf("%u;%d;%p;%p\n", hostCode, neighborhood, problem, exper);
 	std::vector<MLMove> *moves = NULL;
-	if (useMoves) {
+	if (*useMoves) {
 		moves = new std::vector<MLMove>();
 	}
 	unsigned int resp = exper->runWAMCA2016(1, neighborhood, neighborhood + 1, solution, solutionSize, moves);
-	if (useMoves) {
+	if (*useMoves) {
 		unsigned int size = moves->size();
 //		printf("size: %hu, useMoves: %hu\n", size, useMoves);
-		size = size < useMoves ? size : useMoves;
-		#pragma omp parallel for
+		size = size < *useMoves ? size : *useMoves;
 		for (unsigned int i = 0; i < size; i++) {
 			MLMove move = (*moves)[i];
 			ids[i] = move.id;
@@ -136,6 +131,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		}
 
 		delete moves;
+		*useMoves = size;
 	}
 
 	return resp;

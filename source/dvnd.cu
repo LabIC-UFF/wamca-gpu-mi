@@ -48,10 +48,10 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 	}
 
 	int selectedMovesLen = impValue = 0;
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for (int i = 0; i < nMoves; i++) {
 		if (movesIndex[i].index != -1) {
-			#pragma omp critical
+//			#pragma omp critical
 			{
 				selectedMoves[selectedMovesLen++] = movesIndex[i].index;
 				impValue += movesIndex[i].move->cost;
