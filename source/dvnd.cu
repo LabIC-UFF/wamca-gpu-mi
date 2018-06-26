@@ -35,12 +35,19 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 		std::sort(movesIndex, movesIndex + nMoves, ordenaCrescente);
 	}
 
-	// Criar as threads não necessariamente melhora a performance e adiciona aleatoriedade
-//	#pragma omp parallel for
+//	for (int i = 0; i < nMoves; i++) {
+//		 unsigned int    id : 4;
+//		    unsigned int    i : 14;
+//		    unsigned int    j : 14;
+//		    int     cost;    // REMOVED :32 !! Goddamn Eyder...
+//		printf("%u{id:%u, i:%u, j:%u, cost:%d} ", movesIndex[i].index,
+//			movesIndex[i].move->id, movesIndex[i].move->i, movesIndex[i].move->j, movesIndex[i].move->cost);
+//	}
+//	putchar('\n');
 	for (int i = 0; i < nMoves; i++) {
 		for (int j = i + 1; j < nMoves; j++) {
 			if (!noConflict(movesIndex[i].move->id, movesIndex[i].move->i, movesIndex[i].move->j, movesIndex[j].move->id, movesIndex[j].move->i, movesIndex[j].move->j)) {
-//				printf("conflict %d-%d\n", i, j);
+//				printf("conflict %d-%d(%u-%u)\n", i, j, movesIndex[i].index, movesIndex[j].index);
 				movesIndex[i].index = -1;
 				break;
 			}
@@ -48,14 +55,10 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 	}
 
 	int selectedMovesLen = impValue = 0;
-//	#pragma omp parallel for
 	for (int i = 0; i < nMoves; i++) {
 		if (movesIndex[i].index != -1) {
-//			#pragma omp critical
-			{
-				selectedMoves[selectedMovesLen++] = movesIndex[i].index;
-				impValue += movesIndex[i].move->cost;
-			}
+			selectedMoves[selectedMovesLen++] = movesIndex[i].index;
+			impValue += movesIndex[i].move->cost;
 		}
 	}
 

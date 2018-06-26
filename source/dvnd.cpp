@@ -207,7 +207,6 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 		solDevice->update();
 		solDevice->ldsUpdate();
 
-		#pragma omp parallel for
 		for (int si = 0; si < solutionSize; si++) {
 			solution[si] = solDevice->clients[si];
 		}
