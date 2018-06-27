@@ -1,9 +1,10 @@
 #include <iostream>
+#include <ctime>
+#include <map>
+#include <vector>
 
 #include <stdio.h>
 #include <unistd.h>
-#include <map>
-#include <vector>
 
 #include "WamcaExperiment.hpp"
 #include "dvnd.cuh"
@@ -81,7 +82,7 @@ void move64ToVectors(MLMove64 *moves, unsigned short *ids = NULL, unsigned int *
 }
 
 extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood, bool justCalc = false, unsigned int hostCode = 0,
-		unsigned int *useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
+		unsigned int *useMoves = NULL, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL) {
 	if (!justCalc) {
 		envInit();
 	}
