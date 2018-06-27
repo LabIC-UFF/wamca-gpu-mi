@@ -189,6 +189,7 @@ public:
 //        l4printf("GPU%u\n",gpuId);
 
         // Get GPU properties
+//        printf("--------gpuId: %u--------\n", gpuId);
         gpuGetDeviceProperties(&gpuProps,gpuId);
         // Get free memory size
         gpuMemGetInfo(&free,&size);

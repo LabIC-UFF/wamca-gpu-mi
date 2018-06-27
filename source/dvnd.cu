@@ -1,15 +1,79 @@
 #include <algorithm>
 #include <omp.h>
 
+#include "WamcaExperiment.hpp"
 #include "dvnd.cuh"
+#include "dvnd.h"
 
-struct MoveIndex {
-	MLMove64 *move;
-	unsigned int index;
-};
+extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood, bool justCalc, unsigned int hostCode,
+		unsigned int *useMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs, bool useMultipleGpu, unsigned int deviceCount) {
+	unsigned int selectedDevice = 0;
+	if (useMultipleGpu) {
+//		checkCudaErrors(cudaGetDeviceCount(&device_count));
+		selectedDevice = hostCode % deviceCount;
+//		puts("---");
+//		printf("number of devices: %d, mpi process code: %u, selected device: %u\n", deviceCount, hostCode, selectedDevice);
+//		puts("---");
+//		cudaSetDevice(selectedDevice);
+	}
 
-bool ordenaCrescente(const MoveIndex &x, const MoveIndex &y) { return (x.move->cost < y.move->cost); }
-bool ordenaDecrescente(const MoveIndex &x, const MoveIndex &y) { return (x.move->cost > y.move->cost); }
+	if (!justCalc) {
+//		envInit();
+		envInit(selectedDevice);
+	}
+
+//	MLProblem *problem = getProblem(file, hostCode);
+	static MLProblem *problem = getProblem(file, hostCode);
+	/*
+	if (!problem) {
+		bool costTour = true;
+		bool distRound = false;
+		bool coordShift = false;
+		problem = new MLProblem(costTour, distRound, coordShift);
+		problem->load(file);
+	}
+	*/
+
+	if (justCalc) {
+//		printf("%u;%d;%p\n", hostCode, neighborhood, problem);
+		MLSolution* solDevice = getSolution(problem, solution, solutionSize);
+		unsigned int value = solDevice->cost;
+		delete solDevice;
+		return value;
+	}
+
+	int seed = 500; // 0: random
+//	WAMCAExperiment *exper = getExperiment(problem, hostCode, seed);
+	static WAMCAExperiment *exper = NULL;
+	if (!exper) {
+		exper = new WAMCAExperiment(*problem, seed);
+	}
+	exper->gpuId = selectedDevice;
+//	printf("%u;%d;%p;%p\n", hostCode, neighborhood, problem, exper);
+	std::vector<MLMove> *moves = NULL;
+	if (*useMoves) {
+		moves = new std::vector<MLMove>();
+	}
+	cudaSetDevice(selectedDevice);
+	unsigned int resp = exper->runWAMCA2016(1, neighborhood, neighborhood + 1, solution, solutionSize, moves);
+	if (*useMoves) {
+		unsigned int size = moves->size();
+//		printf("size: %hu, useMoves: %hu\n", size, useMoves);
+		size = size < *useMoves ? size : *useMoves;
+		for (unsigned int i = 0; i < size; i++) {
+			MLMove move = (*moves)[i];
+			ids[i] = move.id;
+			is[i] = move.i;
+			js[i] = move.j;
+			costs[i] = move.cost;
+		}
+
+		delete moves;
+		*useMoves = size;
+	}
+
+	return resp;
+}
 
 extern "C" bool noConflict(unsigned short id1, unsigned int i1, unsigned int j1, unsigned short id2, unsigned int i2, unsigned int j2) {
 	MLMove64 move1, move2;
@@ -109,3 +173,6 @@ inline bool noConflict(const MLMove64 &move1, const MLMove64 &move2) {
 		}
 	}
 }
+
+bool ordenaCrescente(const MoveIndex &x, const MoveIndex &y) { return (x.move->cost < y.move->cost); }
+bool ordenaDecrescente(const MoveIndex &x, const MoveIndex &y) { return (x.move->cost > y.move->cost); }

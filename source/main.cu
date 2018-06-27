@@ -19,7 +19,7 @@ using namespace std;
  * Initialize environment.
  */
 void
-envInit()
+envInit(int deviceNumber = 0)
 {
     int     error;
 
@@ -30,7 +30,7 @@ envInit()
     int             count;
 
     // Set thread GPU
-    cudaSetDevice(0);
+    cudaSetDevice(deviceNumber);
 
     // Detect CUDA driver and GPU devices
     switch(cudaGetDeviceCount(&count)) {
