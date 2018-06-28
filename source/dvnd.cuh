@@ -30,6 +30,7 @@ struct MoveIndex {
 	unsigned int index;
 };
 
+extern "C" unsigned int bestNeighborSimple(char * file, int *solution, unsigned int solutionSize, int neighborhood);
 extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood, bool justCalc = false, unsigned int hostCode = 0,
 		unsigned int *useMoves = NULL, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL, bool useMultipleGpu = false, unsigned int deviceCount = 1);
 int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, int &impValue, bool maximize);

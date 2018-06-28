@@ -5,6 +5,10 @@
 #include "dvnd.cuh"
 #include "dvnd.h"
 
+extern "C" unsigned int bestNeighborSimple(char * file, int *solution, unsigned int solutionSize, int neighborhood) {
+	return bestNeighbor(file, solution, solutionSize, neighborhood);
+}
+
 extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood, bool justCalc, unsigned int hostCode,
 		unsigned int *useMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs, bool useMultipleGpu, unsigned int deviceCount) {
 	unsigned int selectedDevice = 0;
@@ -42,7 +46,8 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		return value;
 	}
 
-	int seed = 500; // 0: random
+//	int seed = 500; // 0: random
+	int seed = 0; // 0: random
 //	WAMCAExperiment *exper = getExperiment(problem, hostCode, seed);
 	static WAMCAExperiment *exper = NULL;
 	if (!exper) {
