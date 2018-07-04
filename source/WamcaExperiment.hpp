@@ -548,8 +548,8 @@ public:
 					for (int si = 0; si < solutionSize; si++) {
 						solution[si] = solDevice->clients[si];
 					}
-					valor = solDevice->costCalc();
 				}
+				valor = solDevice->costCalc();
 
 				struct timeval tv;
 				gettimeofday(&tv, NULL);

@@ -71,7 +71,8 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 		}
 		solDevice->update();
 		solDevice->ldsUpdate();
-		unsigned int value = solDevice->cost;
+//		value = solDevice->costCalc();
+		value = solDevice->cost;
 	}
 
 	delete solDevice;
