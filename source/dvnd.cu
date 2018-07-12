@@ -10,7 +10,7 @@ extern "C" unsigned int bestNeighborSimple(char * file, int *solution, unsigned 
 }
 
 extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int solutionSize, int neighborhood, bool justCalc, unsigned int hostCode,
-		unsigned int *useMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs, bool useMultipleGpu, unsigned int deviceCount) {
+		unsigned int *useMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs, bool useMultipleGpu, unsigned int deviceCount, int *solutionResp) {
 	unsigned int selectedDevice = 0;
 	if (useMultipleGpu) {
 //		checkCudaErrors(cudaGetDeviceCount(&device_count));
@@ -60,7 +60,7 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		moves = new std::vector<MLMove>();
 	}
 	cudaSetDevice(selectedDevice);
-	unsigned int resp = exper->runWAMCA2016(1, neighborhood, neighborhood + 1, solution, solutionSize, moves);
+	unsigned int resp = exper->runWAMCA2016(1, neighborhood, neighborhood + 1, solution, solutionSize, moves, solutionResp);
 	if (*useMoves) {
 		unsigned int size = moves->size();
 //		printf("size: %hu, useMoves: %hu\n", size, useMoves);

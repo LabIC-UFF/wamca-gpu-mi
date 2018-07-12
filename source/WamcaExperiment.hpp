@@ -373,7 +373,8 @@ public:
 
 
     // MUST GUARANTEE THAT kMin = kMax - 1
-		unsigned int runWAMCA2016(int mMax = 3, int kMin = 0, int kMax = 3, int *solution = NULL, unsigned int solutionSize = 0, std::vector<MLMove> *moves = NULL) {
+		unsigned int runWAMCA2016(int mMax = 3, int kMin = 0, int kMax = 3, int *solution = NULL, unsigned int solutionSize = 0, std::vector<MLMove> *moves = NULL,
+				int *solutionResp = NULL) {
 //        lprintf("BEGIN WAMCA 2016 Experiments\n");
 			//MLSolution  *solVnd;
 //			MLMove move;
@@ -549,6 +550,14 @@ public:
 						solution[si] = solDevice->clients[si];
 					}
 				}
+				// Copying the final solution
+//				/*
+				if (solutionResp && moves) {
+					for (int si = 0; si < solutionSize; si++) {
+						solutionResp[si] = solDevice->clients[si];
+					}
+				}
+//				*/
 				valor = solDevice->costCalc();
 
 				struct timeval tv;
