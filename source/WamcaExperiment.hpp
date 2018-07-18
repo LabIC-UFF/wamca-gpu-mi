@@ -546,6 +546,7 @@ public:
 				valor = -1;
 				// Copying initial solution back
 				if (solution && !moves) {
+					#pragma omp parallel for
 					for (int si = 0; si < solutionSize; si++) {
 						solution[si] = solDevice->clients[si];
 					}
@@ -553,6 +554,7 @@ public:
 				// Copying the final solution
 //				/*
 				if (solutionResp && moves) {
+					#pragma omp parallel for
 					for (int si = 0; si < solutionSize; si++) {
 						solutionResp[si] = solDevice->clients[si];
 					}
