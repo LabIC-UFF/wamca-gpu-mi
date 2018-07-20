@@ -137,6 +137,11 @@ typedef enum {
     MLMI_OROPT1,
     MLMI_OROPT2,
     MLMI_OROPT3,
+    MLMI_OROPT4,
+    MLMI_OROPT5,
+    MLMI_OROPT6,
+    MLMI_OROPT7,
+    MLMI_OROPT8,
 } MLMoveId;
 
 /*!

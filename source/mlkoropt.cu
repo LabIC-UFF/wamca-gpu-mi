@@ -895,8 +895,9 @@ MLKernelOrOpt::launchKernel()
 {
     l4printf("Calling kernel %s\n",name);
 
-    if(tag < 1 || tag > 3)
+    if(tag < 1 || tag > MLP_MAX_NEIGHBOR - 2) {
         EXCEPTION("Invalid K value (k=%d)",tag);
+    }
 
     // Update kernel calls counter
     callCount++;

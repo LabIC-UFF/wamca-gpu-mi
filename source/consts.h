@@ -16,7 +16,7 @@
 // ##                                                                            ## //
 // ################################################################################ //
 
-#define MLP_MAX_NEIGHBOR            5
+#define MLP_MAX_NEIGHBOR            10
 #define MLP_MAX_HISTORY             5
 #define MLP_MAX_ALPHA               26
 #define MLP_MAX_CPU                 ( 8U*uint(sizeof(uint)) )

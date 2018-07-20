@@ -338,6 +338,11 @@ MLKernel::mergeGPU() {
 	case MLMI_OROPT1:
 	case MLMI_OROPT2:
 	case MLMI_OROPT3:
+	case MLMI_OROPT4:
+	case MLMI_OROPT5:
+	case MLMI_OROPT6:
+	case MLMI_OROPT7:
+	case MLMI_OROPT8:
 		gpuOccupancyMaxPotentialBlockSizeVariableSMem(&minGridSize, &blockSize, testOrOpt, __cudaOccupancyB2DHelper(sMemSize), blockSizeLimit);
 		//printf("minGridSize=%d blockSize=%d moveElems=%d\n",minGridSize, blockSize, moveElems);
 

@@ -71,7 +71,7 @@ extern "C" unsigned int applyMoves(char * file, int *solutionInt, unsigned int s
 			if (j + 1 < solution->clientCount) {
 				solution->weights[j + 1] = solution->dist(j, j + 1);
 			}
-		} else if (ids[cont_i] >= 2 && ids[cont_i] <= 4) {
+		} else if (ids[cont_i] > 1 && ids[cont_i] < MLP_MAX_NEIGHBOR) {
 			// kernels[2] = new MLKernelOrOpt(*problem, 1);
 			// kernels[3] = new MLKernelOrOpt(*problem, 2);
 			// kernels[4] = new MLKernelOrOpt(*problem, 3);
