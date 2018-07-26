@@ -147,9 +147,9 @@ WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode, int 
 }
 
 extern "C" int getNoConflictMoves(unsigned int useMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs,
-		int *selectedMoves, int *impValue, bool maximize) {
+		int *selectedMoves, int *impValue, bool maximize, bool melhorParaPior) {
 	MLMove64 *moves = vectorsToMove64(useMoves, ids, is, js, costs);
-	int cont = betterNoConflict(moves, useMoves, selectedMoves, impValue[0], maximize);
+	int cont = betterNoConflict(moves, useMoves, selectedMoves, impValue[0], maximize, melhorParaPior);
 	delete[] moves;
 	return cont;
 }

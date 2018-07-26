@@ -13,20 +13,13 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 		unsigned int *useMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs, bool useMultipleGpu, unsigned int deviceCount, int *solutionResp) {
 	unsigned int selectedDevice = 0;
 	if (useMultipleGpu) {
-//		checkCudaErrors(cudaGetDeviceCount(&device_count));
 		selectedDevice = hostCode % deviceCount;
-//		puts("---");
-//		printf("number of devices: %d, mpi process code: %u, selected device: %u\n", deviceCount, hostCode, selectedDevice);
-//		puts("---");
-//		cudaSetDevice(selectedDevice);
 	}
 
 	if (!justCalc) {
-//		envInit();
 		envInit(selectedDevice);
 	}
 
-//	MLProblem *problem = getProblem(file, hostCode);
 	static MLProblem *problem = getProblem(file, hostCode);
 	/*
 	if (!problem) {
@@ -39,7 +32,6 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 	*/
 
 	if (justCalc) {
-//		printf("%u;%d;%p\n", hostCode, neighborhood, problem);
 		MLSolution* solDevice = getSolution(problem, solution, solutionSize);
 		unsigned int value = solDevice->cost;
 		delete solDevice;
@@ -48,13 +40,11 @@ extern "C" unsigned int bestNeighbor(char * file, int *solution, unsigned int so
 
 //	int seed = 500; // 0: random
 	int seed = 0; // 0: random
-//	WAMCAExperiment *exper = getExperiment(problem, hostCode, seed);
 	static WAMCAExperiment *exper = NULL;
 	if (!exper) {
 		exper = new WAMCAExperiment(*problem, seed);
 	}
 	exper->gpuId = selectedDevice;
-//	printf("%u;%d;%p;%p\n", hostCode, neighborhood, problem, exper);
 	std::vector<MLMove> *moves = NULL;
 	if (*useMoves) {
 		moves = new std::vector<MLMove>();
@@ -91,14 +81,15 @@ extern "C" bool noConflict(unsigned short id1, unsigned int i1, unsigned int j1,
 	return noConflict(move1, move2);
 }
 
-int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, int &impValue, bool maximize) {
+
+int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, int &impValue, bool maximize, bool melhorParaPior) {
 	MoveIndex movesIndex[nMoves];
 	for (int i = 0; i < nMoves; i++) {
 		movesIndex[i].move = moves + i;
 		movesIndex[i].index = i;
 	}
 
-	if (!maximize) {
+	if (melhorParaPior ? maximize : !maximize) {
 		std::sort(movesIndex, movesIndex + nMoves, ordenaDecrescente);
 	} else {
 		std::sort(movesIndex, movesIndex + nMoves, ordenaCrescente);
@@ -117,7 +108,11 @@ int betterNoConflict(MLMove64 *moves, unsigned int nMoves, int *selectedMoves, i
 		for (int j = i + 1; j < nMoves; j++) {
 			if (!noConflict(movesIndex[i].move->id, movesIndex[i].move->i, movesIndex[i].move->j, movesIndex[j].move->id, movesIndex[j].move->i, movesIndex[j].move->j)) {
 //				printf("conflict %d-%d(%u-%u)\n", i, j, movesIndex[i].index, movesIndex[j].index);
-				movesIndex[i].index = -1;
+				if (melhorParaPior) {
+					movesIndex[j].index = -1;
+				} else {
+					movesIndex[i].index = -1;
+				}
 				break;
 			}
 		}

@@ -20,7 +20,7 @@ extern "C" unsigned int applyMoves(char * file, int *solution, unsigned int solu
 		unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL);
 WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode = 0, int seed = 500);
 extern "C" int getNoConflictMoves(unsigned int useMoves = 0, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL,
-		int *selectedMoves = NULL, int *impValue = NULL, bool maximize = false);
+		int *selectedMoves = NULL, int *impValue = NULL, bool maximize = false, bool melhorParaPior = false);
 MLProblem * getProblem(char * file, unsigned int hostCode = 0);
 MLSolution* getSolution(MLProblem * problem, int *solution, unsigned int solutionSize);
 void move64ToVectors(MLMove64 *moves, unsigned short *ids = NULL, unsigned int *is = NULL, unsigned int *js = NULL, int *costs = NULL, unsigned int size = 0);
