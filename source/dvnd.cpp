@@ -12,13 +12,14 @@
 
 using namespace std;
 
-extern "C" unsigned int applyMoves(char * file, int *solutionInt, unsigned int solutionSize, unsigned int useMoves, unsigned short *ids, unsigned int *is,
+extern "C" unsigned int applyMoves(char * file, int *solutionInt, unsigned int solutionSize, unsigned int numberOfMoves, unsigned short *ids, unsigned int *is,
 		unsigned int *js, int *costs) {
 	MLProblem * problem = getProblem(file);
-	MLMove *moves = vectorsToMove(useMoves, ids, is, js, costs);
+	MLMove *moves = vectorsToMove(numberOfMoves, ids, is, js, costs);
 	MLSolution* solution = getSolution(problem, solutionInt, solutionSize);
 
-	for (int cont_i = 0; cont_i < useMoves; cont_i++) {
+
+	for (int cont_i = 0; cont_i < numberOfMoves; cont_i++) {
 		MLMove move = moves[cont_i];
 
 		if (ids[cont_i] == 0) {
@@ -132,10 +133,14 @@ extern "C" unsigned int applyMoves(char * file, int *solutionInt, unsigned int s
 		solutionInt[si] = solution->clients[si];
 	}
 
+	solution->update();
+	unsigned int value = solution->costCalc();
+
 	delete solution;
 	delete[] moves;
 
-	return solution->cost;;
+//	return solution->cost;;
+	return value;
 }
 
 WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode, int seed) {
@@ -146,10 +151,10 @@ WAMCAExperiment * getExperiment(MLProblem * problem, unsigned int hostCode, int 
 	return experiments[hostCode] = new WAMCAExperiment(*problem, seed);
 }
 
-extern "C" int getNoConflictMoves(unsigned int useMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs,
+extern "C" int getNoConflictMoves(unsigned int numberOfMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs,
 		int *selectedMoves, int *impValue, bool maximize, bool melhorParaPior) {
-	MLMove64 *moves = vectorsToMove64(useMoves, ids, is, js, costs);
-	int cont = betterNoConflict(moves, useMoves, selectedMoves, impValue[0], maximize, melhorParaPior);
+	MLMove64 *moves = vectorsToMove64(numberOfMoves, ids, is, js, costs);
+	int cont = betterNoConflict(moves, numberOfMoves, selectedMoves, impValue[0], maximize, melhorParaPior);
 	delete[] moves;
 	return cont;
 }
@@ -197,9 +202,9 @@ void removeExperiment(WAMCAExperiment * exper) {
 	delete exper;
 }
 
-MLMove64 * vectorsToMove64(unsigned int useMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs) {
-	MLMove64 *moves = new MLMove64[useMoves];
-	for (int i = 0; i < useMoves; i++) {
+MLMove64 * vectorsToMove64(unsigned int numberOfMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs) {
+	MLMove64 *moves = new MLMove64[numberOfMoves];
+	for (int i = 0; i < numberOfMoves; i++) {
 		moves[i].id = ids[i];
 		moves[i].i = is[i];
 		moves[i].j = js[i];
@@ -209,9 +214,9 @@ MLMove64 * vectorsToMove64(unsigned int useMoves, unsigned short *ids, unsigned 
 	return moves;
 }
 
-MLMove * vectorsToMove(unsigned int useMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs) {
-	MLMove *moves = new MLMove[useMoves];
-	for (int i = 0; i < useMoves; i++) {
+MLMove * vectorsToMove(unsigned int numberOfMoves, unsigned short *ids, unsigned int *is, unsigned int *js, int *costs) {
+	MLMove *moves = new MLMove[numberOfMoves];
+	for (int i = 0; i < numberOfMoves; i++) {
 		moves[i].id = MLMoveId(ids[i]);
 		moves[i].i = is[i];
 		moves[i].j = js[i];

@@ -575,6 +575,7 @@ public:
 					}
 				}
 //				*/
+				solDevice->update();
 				valor = solDevice->costCalc();
 
 				struct timeval tv;
