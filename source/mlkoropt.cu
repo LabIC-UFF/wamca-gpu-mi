@@ -928,14 +928,14 @@ MLKernelOrOpt::applyMove(MLMove &move)
     i = move.i;
     j = move.j;
 
-    for(l=0;l < tag;l++)
+    for(l=0; l < tag && l + i < solution->clientCount; l++)
         temp[l] = solution->clients[l + i];
 
     if(i < j) {
-        for(l=i + tag;l < j + tag;l++)
+        for(l=i + tag; l < j + tag && i < solution->clientCount; l++)
             solution->clients[i++] = solution->clients[l];
 
-        for(l=0;l < tag;l++)
+        for(l=0; l < tag && i < solution->clientCount; l++)
             solution->clients[i++] = temp[l];
 
         i = move.i;
@@ -945,10 +945,10 @@ MLKernelOrOpt::applyMove(MLMove &move)
     }
     else
     if(i > j) {
-        for(l=i - 1;l >= j;l--)
+        for(l=i - 1; l >= j; l--)
             solution->clients[l + tag] = solution->clients[l];
 
-        for(l=0;l < tag;l++)
+        for(l=0; l < tag && l + j < solution->clientCount; l++)
             solution->clients[l + j] = temp[l];
 
         i = move.j;
@@ -956,8 +956,9 @@ MLKernelOrOpt::applyMove(MLMove &move)
         if(j >= solution->clientCount)
             j--;
     }
-    for(;i <= j;i++)
+    for(;i <= j && i < solution->clientCount; i++) {
         solution->weights[i] = problem.clients[ solution->clients[i - 1] ].weight[ solution->clients[i] ];
+    }
 
 #ifdef MLP_COST_CHECK
     if(problem.params.checkCost) {
