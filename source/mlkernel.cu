@@ -343,6 +343,27 @@ MLKernel::mergeGPU() {
 	case MLMI_OROPT6:
 	case MLMI_OROPT7:
 	case MLMI_OROPT8:
+	case MLMI_OROPT9:
+	case MLMI_OROPT10:
+	case MLMI_OROPT11:
+	case MLMI_OROPT12:
+	case MLMI_OROPT13:
+	case MLMI_OROPT14:
+	case MLMI_OROPT15:
+	case MLMI_OROPT16:
+	case MLMI_OROPT17:
+	case MLMI_OROPT18:
+	case MLMI_OROPT19:
+	case MLMI_OROPT20:
+	case MLMI_OROPT21:
+	case MLMI_OROPT22:
+	case MLMI_OROPT23:
+	case MLMI_OROPT24:
+	case MLMI_OROPT25:
+	case MLMI_OROPT26:
+	case MLMI_OROPT27:
+	case MLMI_OROPT28:
+	case MLMI_OROPT29:
 		gpuOccupancyMaxPotentialBlockSizeVariableSMem(&minGridSize, &blockSize, testOrOpt, __cudaOccupancyB2DHelper(sMemSize), blockSizeLimit);
 		//printf("minGridSize=%d blockSize=%d moveElems=%d\n",minGridSize, blockSize, moveElems);
 

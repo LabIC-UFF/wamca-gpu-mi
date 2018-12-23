@@ -121,38 +121,28 @@ public:
         kernelCount = 0;
         for (int kid = 0; kid < MLP_MAX_NEIGHBOR; kid++) {
             switch (kid) {
-            case MLMI_SWAP:
-                kernels[kernelCount++] = new MLKernelSwap(problem);
-                break;
-            case MLMI_2OPT:
-                kernels[kernelCount++] = new MLKernel2Opt(problem);
-                break;
-            case MLMI_OROPT1:
-                kernels[kernelCount++] = new MLKernelOrOpt(problem, 1);
-                break;
-            case MLMI_OROPT2:
-                kernels[kernelCount++] = new MLKernelOrOpt(problem, 2);
-                break;
-            case MLMI_OROPT3:
-                kernels[kernelCount++] = new MLKernelOrOpt(problem, 3);
-                break;
-            case MLMI_OROPT4:
-                kernels[kernelCount++] = new MLKernelOrOpt(problem, 4);
-                break;
-            case MLMI_OROPT5:
-                kernels[kernelCount++] = new MLKernelOrOpt(problem, 5);
-                break;
-            case MLMI_OROPT6:
-                kernels[kernelCount++] = new MLKernelOrOpt(problem, 6);
-                break;
-            case MLMI_OROPT7:
-                kernels[kernelCount++] = new MLKernelOrOpt(problem, 7);
-                break;
-            case MLMI_OROPT8:
-                kernels[kernelCount++] = new MLKernelOrOpt(problem, 8);
-                break;
-            default:
-                EXCEPTION("Invalid move id: %d", kid);
+				case MLMI_SWAP:
+					kernels[kernelCount++] = new MLKernelSwap(problem);
+					break;
+				case MLMI_2OPT:
+					kernels[kernelCount++] = new MLKernel2Opt(problem);
+					break;
+				case MLMI_OROPT1:
+					kernels[kernelCount++] = new MLKernelOrOpt(problem, 1);
+					break;
+				case MLMI_OROPT2:
+					kernels[kernelCount++] = new MLKernelOrOpt(problem, 2);
+					break;
+				case MLMI_OROPT3:
+					kernels[kernelCount++] = new MLKernelOrOpt(problem, 3);
+					break;
+				default:
+					if (kid < MLP_MAX_NEIGHBOR) {
+						kernels[kernelCount++] = new MLKernelOrOpt(problem, kid);
+						break;
+					} else {
+						EXCEPTION("Invalid move id: %d", kid);
+					}
             }
         }
 
