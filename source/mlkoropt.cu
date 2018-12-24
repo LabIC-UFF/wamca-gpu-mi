@@ -928,35 +928,42 @@ MLKernelOrOpt::applyMove(MLMove &move)
     i = move.i;
     j = move.j;
 
-    for(l=0; l < tag && l + i < solution->clientCount; l++)
+    for(l=0; l < tag /*&& l + i < solution->clientCount*/; l++) {
         temp[l] = solution->clients[l + i];
+    }
 
     if(i < j) {
-        for(l=i + tag; l < j + tag && i < solution->clientCount; l++)
+        for(l=i + tag; l < j + tag /*&& i < solution->clientCount*/; l++) {
             solution->clients[i++] = solution->clients[l];
+        }
 
-        for(l=0; l < tag && i < solution->clientCount; l++)
+        for(l=0; l < tag /*&& i < solution->clientCount*/; l++) {
             solution->clients[i++] = temp[l];
+        }
 
         i = move.i;
         j = move.j + tag;
-        if(j >= solution->clientCount)
+        if(j >= solution->clientCount) {
             j--;
+        }
     }
     else
     if(i > j) {
-        for(l=i - 1; l >= j; l--)
+        for(l=i - 1; l >= j; l--) {
             solution->clients[l + tag] = solution->clients[l];
+        }
 
-        for(l=0; l < tag && l + j < solution->clientCount; l++)
+        for(l=0; l < tag /*&& l + j < solution->clientCount*/; l++) {
             solution->clients[l + j] = temp[l];
+        }
 
         i = move.j;
         j = move.i + tag;
-        if(j >= solution->clientCount)
+        if(j >= solution->clientCount) {
             j--;
+        }
     }
-    for(;i <= j && i < solution->clientCount; i++) {
+    for(;i <= j /*&& i < solution->clientCount*/; i++) {
         solution->weights[i] = problem.clients[ solution->clients[i - 1] ].weight[ solution->clients[i] ];
     }
 

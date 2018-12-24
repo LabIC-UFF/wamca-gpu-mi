@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "WamcaExperiment.hpp"
 #include "dvnd.cuh"
@@ -224,4 +225,9 @@ MLMove * vectorsToMove(unsigned int numberOfMoves, unsigned short *ids, unsigned
 //		PRINT_MOVE(i, moves[i]);
 	}
 	return moves;
+}
+
+extern "C" void segFault() {
+//	*(int *)0 = 0;
+	raise(11);
 }
