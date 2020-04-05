@@ -34,33 +34,16 @@ unless the lambda is defined within a __device__ or __global__ function, or the 
           detected during instantiation of "test_mykernel" based on template argument <lambda [](int)->int> 
 */
 
-template<class T>
-void gokernel(T func, int x)
-{
-	test_mykernel<<<1,1>>>( func , x);	
-}
-
-void runmyfunc()
-{
-	int x = 10;
-	auto func = [=] __host__ __device__ (int k)->int { return 2*k; };
-	gokernel( func , x);	
-	gpuErrchk( cudaPeekAtLastError() );
-	gpuErrchk( cudaDeviceSynchronize() );
-}
-
+// This is used to launch lambda in a 'clean' scope. Could also be a global function.
 struct RunTestKernel
 {
 	static void run(int x)
 	{
 		std::cout << "will launch!" << std::endl;
-		// must use 'extended lambda' (with __device__) and allow flag '--expt-extended-lambda'
 		//
-		//test_mykernel<<<1,1>>>([] __host__ __device__ (int k)->int { return 2*k; }, x);
-		auto func = [] __host__ __device__ (int k)->int { return 2*k; };
-		test_mykernel<<<1,1>>>(func, x);
-		// synchronizing here, directly!
-		//cudaDeviceSynchronize();
+		// must use 'extended lambda' (with __device__) and allow flag '--expt-extended-lambda'
+		test_mykernel<<<1,1>>>( [] __host__ __device__ (int k)->int { return 2*k; } , x);
+		//
 		gpuErrchk( cudaPeekAtLastError() );
 		gpuErrchk( cudaDeviceSynchronize() );
 		std::cout << "launched and finished!" << std::endl;
@@ -125,49 +108,24 @@ TEST(TestMyKernel, WamcaExperiment_Lambda_CPP14_example)
     cudaDeviceSynchronize();
 
     cudaError_t error = cudaGetLastError();
-    if(error!=cudaSuccess)
-    {
-        std::cout << "ERROR: " << cudaGetErrorString(error);
-	}
-
-	EXPECT_EQ(true, false);
+	EXPECT_EQ(error, cudaSuccess);
 }
 
 
 TEST(TestMyKernel, WamcaExperiment_Lambda_CPP14_test)
 {
-	auto my_lambda = [](int x)->int
-	{
-		return x + 2;
-	};
-
-	//test_mykernel<<<1,1>>>(my_lambda, 50);
-	test_mykernel2<<<1,1>>>(50);
-	cudaDeviceSynchronize();
-
-	int x = 40;
-	test_mykernel1<<<1,1>>>(x);
-	cudaDeviceSynchronize();
-	std::cout << "shouldn't work with references: x' = " << x << std::endl;
-
-	//test_mykernel<<<1,1>>>([] __device__ (int k)->int { return 2*k; }, x);
 	//
-	//RunTestKernel::run(x);
-	runmyfunc();
+	test_mykernel2<<<1,1>>>(50);
+	gpuErrchk( cudaPeekAtLastError() );
+	gpuErrchk( cudaDeviceSynchronize() );
 
-	cudaDeviceSynchronize();
+
+	//
+	int x = 50;
+	// cannot run from this scope... cuda requires a 'clean' scope, to use 'extended lambdas'
+	RunTestKernel::run(x);
+	cudaError_t code = cudaDeviceSynchronize();
+	EXPECT_EQ(code, cudaSuccess);
+	//
 	std::cout << "last kernel passed" << std::endl;
-
-	/*
-	auto my_const_expression_lambda = []() constexpr->bool
-	{
-		return true;
-	};
-
-	constexpr bool myval = my_const_expression_lambda();
-
-	EXPECT_EQ(myval, true);
-	*/
-
-	EXPECT_EQ(true, false);
 }
