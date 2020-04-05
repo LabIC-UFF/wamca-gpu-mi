@@ -7,6 +7,7 @@
 
 void runGpuGpu(MLKernel *kernel, int &impr2, int &countImpr2, int &imprMoves2, std::vector<MLMove> *moves = NULL)
 {
+	//std::cout << "runGPUGPU" << std::endl;
 	int movesCount, movesCost;
 	MLMove move;
 
@@ -36,6 +37,7 @@ void runGpuGpu(MLKernel *kernel, int &impr2, int &countImpr2, int &imprMoves2, s
 		{
 			impr2 += move.cost;
 			countImpr2++;
+			//std::cout << "GOOD!" << move.cost << std::endl;
 			////l4printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
 			//                        printf("Apply %s(%d,%d) = %d\n", kernel->name, move.i, move.j, move.cost);
 			kernel->applyMove(move);
@@ -75,7 +77,10 @@ TEST(WamcaExp, WamcaExperiment_InitKernel)
 
 	MLSolution *solDevice = new MLSolution(problem, cudaHostAllocDefault);
 	solDevice->random(rng, 0.50);
-	EXPECT_EQ(solDevice->clientCount, 53);
+	solDevice->update();
+	solDevice->ldsUpdate();
+	uint valor1 = solDevice->costCalc();
+	EXPECT_EQ(valor1, 494309);
 	// ---------
 	MLKernel *kernel = new MLKernelSwap(problem);
 	kernel->init(true);
@@ -90,15 +95,18 @@ TEST(WamcaExp, WamcaExperiment_InitKernel)
 	int impr, countImpr;   // total cost improvement
 	int impr2, countImpr2; // for checking purposes
 	uint valor = 0;
-	uint valor1 = 0;
 	MLMove move;
 	int imprMoves = 0;
 	int imprMoves2 = 0;
+
+	
 
 	//MLKernel *kernel = kernels[k];
 	kernel->setSolution(solDevice);
 	kernel->sendSolution();
 	valor1 = solDevice->costCalc();
+	EXPECT_EQ(valor1, 494309);
+	//
 	struct timeval tv1;
 	gettimeofday(&tv1, NULL);
 	long curtime1 = tv1.tv_sec * 1000000 + tv1.tv_usec;
@@ -120,4 +128,7 @@ TEST(WamcaExp, WamcaExperiment_InitKernel)
 	kernel->getSolution(solDevice);
 	solDevice->update();
 	solDevice->ldsUpdate();
+	//
+	valor1 = solDevice->costCalc();
+	EXPECT_EQ(valor1, 367403);
 }

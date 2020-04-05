@@ -27,7 +27,7 @@ test: clean wamca2016.test
 wamca2016.test : wamca2016.Test.cpp
 	#g++ $(CCX_STD)
 	#$(CCX) $(CCX_ARCH) $(NVCC_INFO) --coverage -g -O0 --std=c++11
-	$(CCX) $(CCX_ARCH) $(NVCC_INFO) $(NVCC_TEST) --std=c++11 \
+	$(CCX) $(CCX_ARCH) $(NVCC_INFO) $(NVCC_TEST) -Xcompiler -Wall --std=c++11 \
 	-I$(SRC_PATH) -I$(GTEST_INCLUDE) -I$(GMOCK_INCLUDE) \
 	 $< -o $@ \
 	$(GMOCK_PATH)/gtest/libgtest_main.a $(GMOCK_PATH)/gtest/libgtest.a $(GMOCK_PATH)/libgmock.a \
