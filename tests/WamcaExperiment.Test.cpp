@@ -66,6 +66,7 @@ void runGpuGpu(MLKernel *kernel, int &impr2, int &countImpr2, int &imprMoves2, s
 	//printf("CHECK (impr=%d impr2=%d) (count=%d count2=%d) (imprMoves=%d imprMoves2=%d)\n", impr, impr2, countImpr, countImpr2, imprMoves, imprMoves2);
 }
 
+
 TEST(WamcaExp, WamcaExperiment_InitKernel)
 {
 	MLProblem &problem = TestBerlin52::getProblem();
@@ -99,8 +100,6 @@ TEST(WamcaExp, WamcaExperiment_InitKernel)
 	int imprMoves = 0;
 	int imprMoves2 = 0;
 
-	
-
 	//MLKernel *kernel = kernels[k];
 	kernel->setSolution(solDevice);
 	kernel->sendSolution();
@@ -123,7 +122,6 @@ TEST(WamcaExp, WamcaExperiment_InitKernel)
 
 	//
 	runGpuGpu(kernel, impr2, countImpr2, imprMoves2, moves);
-
 
 	kernel->getSolution(solDevice);
 	solDevice->update();

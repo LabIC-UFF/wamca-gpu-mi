@@ -16,6 +16,8 @@
 #include "except.h"
 #include "log.h"
 #include "utils.h"
+
+
 #include "mlsolution.h"
 
 #include "gpu.h"
@@ -194,7 +196,7 @@ MLSolution::costTypeName()
 }
 
 ulong
-hash(byte *data, uint size)
+hash(gpubyte *data, uint size)
 {
     int   c;
     ulong hash = 5381;
@@ -400,12 +402,12 @@ ullong
 MLSolution::ldsChecksum(uint max)
 {
     ullong  sum;
-    byte   *data;
+    gpubyte   *data;
 
     if(max == 0)
         max = adsDataSize;
 
-    data = (byte *) adsData;
+    data = (gpubyte *) adsData;
     sum  = 0;
     for(uint i=0;i < max;i++)
         sum += data[i];

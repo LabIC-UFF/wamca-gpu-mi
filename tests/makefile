@@ -14,9 +14,15 @@ GMOCK_INCLUDE=$(LIBS_PATH)/gtestlib/googlemock/include
 all:
 	@echo "please type 'make test'"
 
-test: clean wamca2016.test
+test: clean wamca2016cuda.test wamca2016.test 
 	@echo "Executing tests"
 	./wamca2016.test
+	./wamca2016cuda.test
+
+test_cuda: clean wamca2016cuda.test
+	@echo "Executing tests"
+	./wamca2016cuda.test
+
 
 #/usr/local/cuda-8.0/bin/nvcc -D_FORCE_INLINES -DLOG_LEVEL=1 -DGPU_PROFILE -O3 -gencode arch=compute_35,code=sm_35 -gencode arch=compute_50,code=sm_50  -odir "source" -M -o "source/log.d" "../source/log.cpp"
 # (CCX_ARCH)  -odir "source" -M -o "source/log.d" "../source/log.cpp"
@@ -27,7 +33,10 @@ test: clean wamca2016.test
 wamca2016.test : wamca2016.Test.cpp
 	#g++ $(CCX_STD)
 	#$(CCX) $(CCX_ARCH) $(NVCC_INFO) --coverage -g -O0 --std=c++11
-	$(CCX) $(CCX_ARCH) $(NVCC_INFO) $(NVCC_TEST) -Xcompiler -Wall --std=c++11 \
+	#--std=c++14 -Xcompiler -Wall,--std=c++17 
+	#--std=c++14 -Xcompiler -Wall,--std=c++14 --expt-relaxed-constexpr  
+	$(CCX) $(CCX_ARCH) $(NVCC_INFO) $(NVCC_TEST) \
+	--std=c++14 -Xcompiler -Wall,--std=c++14 \
 	-I$(SRC_PATH) -I$(GTEST_INCLUDE) -I$(GMOCK_INCLUDE) \
 	 $< -o $@ \
 	$(GMOCK_PATH)/gtest/libgtest_main.a $(GMOCK_PATH)/gtest/libgtest.a $(GMOCK_PATH)/libgmock.a \
@@ -36,6 +45,22 @@ wamca2016.test : wamca2016.Test.cpp
 	$(SRC_PATH)/mlsolution.cpp $(SRC_PATH)/mlads.cpp \
 	$(SRC_PATH)/mlkswap.cu $(SRC_PATH)/mlkernel.cu \
 	 -lpthread -ldl
+
+wamca2016cuda.test : wamca2016cuda.Test.cu
+	$(CCX) $(CCX_ARCH) $(NVCC_INFO) $(NVCC_TEST) \
+	--std=c++14 -Xcompiler -Wall,--std=c++14 \
+	--expt-extended-lambda \
+	-I$(SRC_PATH) -I$(GTEST_INCLUDE) -I$(GMOCK_INCLUDE) \
+	 $< -o $@ \
+	$(GMOCK_PATH)/gtest/libgtest_main.a $(GMOCK_PATH)/gtest/libgtest.a $(GMOCK_PATH)/libgmock.a \
+	TestKernel.cu \
+	#$(SRC_PATH)/mtrand.cpp \
+	#$(SRC_PATH)/mlproblem.cpp $(SRC_PATH)/tsplib.cpp $(SRC_PATH)/except.cpp $(SRC_PATH)/utils.cpp \
+	#$(SRC_PATH)/mlsolution.cpp $(SRC_PATH)/mlads.cpp \
+	#$(SRC_PATH)/mlkswap.cu $(SRC_PATH)/mlkernel.cu \
+	
+	 #-lpthread -ldl
+
 
 test-coverage:
 	mkdir -p reports

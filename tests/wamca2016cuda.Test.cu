@@ -1,0 +1,8 @@
+
+
+#include "./MyKernel.Test.cu"
+
+
+
+
+

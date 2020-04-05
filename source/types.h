@@ -10,7 +10,10 @@
 #ifndef __types_h
 #define __types_h
 
-typedef unsigned char       byte,   *pbyte;     ///< Alias for unsigned char
+
+//typedef unsigned char       byte,   *pbyte;     ///< Alias for unsigned char
+// c++ conflict with 'byte'
+typedef unsigned char       gpubyte,   *pgpubyte;     ///< Alias for unsigned char
 typedef unsigned short      ushort, *pushort;   ///< Alias for unsigned short
 typedef unsigned int        uint,   *puint;     ///< Alias for unsigned int
 typedef unsigned long       ulong,  *pulong;    ///< Alias for unsigned long
@@ -19,6 +22,8 @@ typedef unsigned long long  ullong, *pullong;   ///< Alias for unsigned long lon
 
 typedef void               *pointer;		    ///< Generic pointer (void *)
 
+using byte = gpubyte;
+
 /*!
  * variant
  *
@@ -26,7 +31,7 @@ typedef void               *pointer;		    ///< Generic pointer (void *)
  */
 typedef union {
     char    v_char;
-    byte    v_byte;
+    gpubyte    v_byte;
     short   v_short;
     ushort  v_ushort;
     int     v_int;
@@ -47,7 +52,7 @@ typedef union {
     void        *p_cvoid;
     void        *p_void;
     char        *p_char;
-    byte        *p_byte;
+    gpubyte        *p_byte;
     short       *p_short;
     ushort      *p_ushort;
     int         *p_int;
