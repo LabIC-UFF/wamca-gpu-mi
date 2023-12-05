@@ -1,0 +1,15 @@
+load("@rules_cuda//cuda:defs.bzl", "cuda_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cuda_library(
+    name = "kernel_example",
+    srcs = ["kernel.cu"],
+    hdrs = ["kernel.h"],
+)
+
+cc_binary(
+    name = "main_example",
+    srcs = ["main.cpp"],
+    deps = [":kernel_example"],
+)

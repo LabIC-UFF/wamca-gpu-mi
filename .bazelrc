@@ -1,0 +1,1 @@
+build --client_env=CC=clang

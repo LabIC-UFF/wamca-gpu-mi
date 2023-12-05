@@ -1,0 +1,107 @@
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_cuda//cuda:defs.bzl", "cuda_library")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "wamca_cc",
+    srcs = ["source/log.cpp",
+            "source/except.cpp",
+            "source/mtrand.cpp",
+            "source/tsplib.cpp",
+            "source/utils.cpp",
+            ],
+    hdrs = ["source/log.h",
+            "source/except.h",
+            "source/mtrand.h",
+            "source/tsplib.h",
+            "source/utils.h",
+            "source/types.h",
+            "source/graph.hpp",
+            "source/consts.h",
+            ],
+)
+
+cuda_library(
+    name = "wamca_cuda",
+    srcs = ["source/mlk2opt.cu",
+            "source/mlkswap.cu",
+            "source/mlkoropt.cu",
+            "source/mlkernel.cu",
+            "source/mlsolution.cpp", # SHOULD BE .cu
+            "source/mlads.cpp",
+            "source/mlproblem.cpp",
+            ],
+    hdrs = ["source/mlk2opt.h",
+            "source/gpu.h", # SHOULD BE .cuh
+            "source/cuda/gpu_helper.h",
+            "source/cuda/gpu_string.h",
+            "source/mlkernel.h",
+            "source/WamcaExperiment.hpp",
+            "source/mlads.h",
+            "source/mlsolution.h",
+            "source/mlproblem.h",
+            "source/mlkswap.h",
+            "source/mlkoropt.h",
+            ],
+    deps = [":wamca_cc"]
+)
+
+cc_binary(
+    name = "main_wamca",
+    srcs = ["source/main.cpp"],
+    deps = [":wamca_cuda"],
+)
+
+'''
+cuda_library(
+    name = "mycuda_files",
+    srcs = glob([
+        "source/**/*.cu", 
+    ],
+    exclude = ["source/dvnd.cu"]
+    ),
+    hdrs = glob([
+        "source/**/*.hpp", 
+        "source/**/*.h", 
+        "source/**/*.cuh", 
+    ]),
+)
+
+cc_library(
+    name = "my_headers",
+    hdrs = glob([
+        "source/**/*.hpp", 
+    ]),
+    includes = ["source"]
+)
+
+cc_binary(
+    name = "app_wamca",
+    srcs = glob([
+        "source/**/*.cpp", 
+        "source/**/*.cu", 
+    ], 
+    exclude = ["source/dvnd.cu"]
+    ),
+    copts = ["-nocudainc", "-nocudalib", "--std=c++17", "-allow-unsupported-compiler", "-fopenmp"],
+    deps = [":mycuda_files", ":my_headers", "@cuda//:cuda"],
+)
+'''
+
+load("@hedron_compile_commands//:refresh_compile_commands.bzl", "refresh_compile_commands")
+
+# bazel run :refresh_compile_commands
+refresh_compile_commands(
+    name = "refresh_compile_commands",
+    targets = {
+      # FOR WINDOWS /MT:
+      # ???
+      # FOR LINUX:
+      "//:app_demo": "--cxxopt=-std=c++20 --define=MY_LONG_SIZE=64 --define=GMP_TYPE_L=\"#define GMP_DEMANDS_UINTD_LONG\" --define=GMP_TYPE_LL=\"/* #undef GMP_DEMANDS_UINTD_LONG_LONG */\" --define=TIME_UNIX_WIN=\"#define HAVE_GETTIMEOFDAY\" ",
+      "//tests:Evaluator_test": "--cxxopt=-std=c++20 --define=MY_LONG_SIZE=64 --define=GMP_TYPE_L=\"#define GMP_DEMANDS_UINTD_LONG\" --define=GMP_TYPE_LL=\"/* #undef GMP_DEMANDS_UINTD_LONG_LONG */\" --define=TIME_UNIX_WIN=\"#define HAVE_GETTIMEOFDAY\" ",
+    },
+)
+
