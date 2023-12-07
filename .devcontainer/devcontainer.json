@@ -19,6 +19,7 @@
 				"matepek.vscode-catch2-test-adapter",
 				"ms-vscode.cmake-tools",
 				"llvm-vs-code-extensions.vscode-clangd",
+				"usernamehw.errorlens"
 				// "-ms-vscode.cpptools-extension-pack"
 			],
 			"settings": {

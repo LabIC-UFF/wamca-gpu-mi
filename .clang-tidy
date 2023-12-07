@@ -4,6 +4,7 @@ Checks: >
     cppcoreguidelines-*,
     google-*,
     performance-*,
+    -cppcoreguidelines-macro-usage,
     -cppcoreguidelines-avoid-magic-numbers,
     -google-readability-todo,
     -performance-unnecessary-value-param,
