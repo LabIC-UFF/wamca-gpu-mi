@@ -1,3 +1,6 @@
+// Copyright Eyder Rios, 2015
+// MIT License
+
 /**
  * @file	mlkernel.h
  *
@@ -7,21 +10,21 @@
  * @date    2015-05-28
  */
 
-#ifndef __mlkernel_h
-#define __mlkernel_h
+#ifndef SOURCE_MLKERNEL_H_
+#define SOURCE_MLKERNEL_H_
 
 #include <pthread.h>
-
-#include "gpu.h"
-#include "graph.hpp"
-#include "mlads.h"
-#include "mlsolution.h"
-#include "types.h"
-#include "utils.h"
-
 //
+#include <cuda.h>
 #include <thrust/device_vector.h>
 #include <thrust/sort.h>
+//
+#include "./gpu.h"
+#include "./graph.hpp"
+#include "./mlads.h"
+#include "./mlsolution.h"
+#include "./types.h"
+#include "./utils.h"
 
 // ################################################################################
 // //
@@ -97,6 +100,7 @@ typedef Graph<MLMove64*> MLMoveGraph;
 // ################################################################################
 // //
 
+// NOLINTNEXTLINE
 class MLKernel {
   // protected:
  public:
@@ -265,7 +269,7 @@ class MLKernel {
    * Get elapsed time between a call of timeStart() and timeStop()
    */
   inline ullong timerElapsed() {
-    float time;
+    float time{0.0};
     gpuEventSynchronize(evtStop);
     gpuEventElapsedTime(&time, evtStart, evtStop);
     return MS2US(time);
@@ -329,7 +333,7 @@ class MLKernelSharedSize {
   MLKernel* kernel;
 
  public:
-  MLKernelSharedSize(MLKernel* krn) { kernel = krn; }
+  explicit MLKernelSharedSize(MLKernel* krn) : kernel{krn} {}
   int operator()(int blockSize) {
     int size = 3 * GPU_BLOCK_CEIL(int, kernel->solSize) +
                2 * GPU_BLOCK_CEIL(uint, blockSize);
@@ -353,4 +357,4 @@ class MLKernelSharedSize {
   }
 };
 
-#endif  // __mlgputask_h
+#endif  // SOURCE_MLKERNEL_H_

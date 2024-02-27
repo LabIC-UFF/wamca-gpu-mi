@@ -14,7 +14,14 @@ Checks: >
     -cppcoreguidelines-non-private-member-variables-in-classes,
     -cppcoreguidelines-pro-type-cstyle-cast,
     -clang-diagnostic-builtin-macro-redefined,
-    -google-readability-casting
+    -google-readability-casting,
+    -cppcoreguidelines-owning-memory,
+    -cppcoreguidelines-pro-type-vararg,
+    -cppcoreguidelines-pro-bounds-constant-array-index,
+    -cppcoreguidelines-pro-type-member-init,
+    -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+    -cppcoreguidelines-avoid-non-const-global-variables,
+    -cppcoreguidelines-pro-type-union-access
 #
 HeaderFilterRegex: ".*"
 # HeaderFilterRegex: "^((?!catch2).)*$" # DOES NOT WORK FOR CPP... only HPP...

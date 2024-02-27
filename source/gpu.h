@@ -1,3 +1,6 @@
+// Copyright Eyder Rios, 2015
+// MIT License
+
 /**
  * @file	gpu.h
  *
@@ -7,8 +10,8 @@
  * @date	2015-12-05
  */
 
-#ifndef __cuda_gpu_h
-#define __cuda_gpu_h
+#ifndef SOURCE_GPU_H_
+#define SOURCE_GPU_H_
 
 #include <stdlib.h>
 //
@@ -157,8 +160,8 @@
 #define GPU_STR(s) #s
 #define GPU_STR_VAL(s) GPU_STR(s)
 
-//#undef  GPU_CUDA_DISABLED
-//#define GPU_CUDA_TRACE
+// #undef  GPU_CUDA_DISABLED
+// #define GPU_CUDA_TRACE
 
 #ifndef GPU_CUDA_DISABLED
 /*
@@ -370,4 +373,4 @@ inline cudaError_t __cudaHostFree(void* p, int flags) {
 
 #endif
 
-#endif
+#endif  // SOURCE_GPU_H_

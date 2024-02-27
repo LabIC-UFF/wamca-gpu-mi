@@ -1,3 +1,6 @@
+// Copyright Eyder Rios, 2015
+// MIT License
+
 /**
  * @file	mlkernel.cpp
  *
@@ -10,14 +13,14 @@
 #include <math.h>
 #include <stdlib.h>
 #include <unistd.h>
-
+//
 #include <algorithm>
 #include <fstream>
-
-#include "log.h"
+//
+#include "./log.h"
 // #include "mlgputask.h"
-#include "mlkernel.h"
-#include "mlsolution.h"
+#include "./mlkernel.h"
+#include "./mlsolution.h"
 
 using namespace std;
 

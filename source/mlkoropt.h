@@ -10,40 +10,39 @@
 #include "mlkernel.h"
 #include "mlsolution.h"
 
+// #################################################################################
+// //
+// ## ## //
+// ##                              CONSTANTS & MACROS ## //
+// ## ## //
+// #################################################################################
+// //
 
-// ################################################################################# //
-// ##                                                                             ## //
-// ##                              CONSTANTS & MACROS                             ## //
-// ##                                                                             ## //
-// ################################################################################# //
+// ################################################################################
+// //
+// ## ## //
+// ##                           CLASS MLKernelOrOpt ## //
+// ## ## //
+// ################################################################################
+// //
 
-// ################################################################################ //
-// ##                                                                            ## //
-// ##                           CLASS MLKernelOrOpt                              ## //
-// ##                                                                            ## //
-// ################################################################################ //
-
-class MLKernelOrOpt : public MLKernel
-{
-public:
-    /*!
-     * Create a MLSwapKernelTask instance.
-     */
-    MLKernelOrOpt(MLProblem &_problem, uint tag, bool isTotal = false) : MLKernel(_problem, isTotal, MLMI_OROPT(tag),tag) {
-    }
-    /*!
-     * Define kernel launching grid
-     */
-    void
-    defineKernelGrid();
-    /*!
-     * Launch kernel for SWAP local search
-     */
-    void
-    launchKernel();
-    /*!
-     * Apply movement to 'solBest' solution.
-     */
-    void
-    applyMove(MLMove &move);
+class MLKernelOrOpt : public MLKernel {
+ public:
+  /*!
+   * Create a MLSwapKernelTask instance.
+   */
+  MLKernelOrOpt(MLProblem& _problem, uint tag, bool isTotal = false)
+      : MLKernel(_problem, isTotal, MLMI_OROPT(tag), tag) {}
+  /*!
+   * Define kernel launching grid
+   */
+  void defineKernelGrid() override;
+  /*!
+   * Launch kernel for SWAP local search
+   */
+  void launchKernel() override;
+  /*!
+   * Apply movement to 'solBest' solution.
+   */
+  void applyMove(MLMove& move) override;
 };

@@ -1,3 +1,6 @@
+// Copyright Eyder Rios, 2015
+// MIT License
+
 /**
  * @file   mlkswap.cu
  *
@@ -9,19 +12,19 @@
 
 #include <stdarg.h>
 #include <stdint.h>
-
+//
 #include <iostream>
-
-#include "gpu.h"
-#include "log.h"
-#include "mlkernel.h"
-#include "utils.h"
+//
+#include "./gpu.h"
+#include "./log.h"
+#include "./mlkernel.h"
+#include "./utils.h"
 // #include "mlgputask.h"
 
-#include "mlkswap.h"
+#include "./mlkswap.h"
 
 //
-#include "thirdparty/UnpackTuple.hpp"
+#include "./thirdparty/UnpackTuple.hpp"
 
 // #################################################################################
 // //

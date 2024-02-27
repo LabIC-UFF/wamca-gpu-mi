@@ -10,40 +10,39 @@
 #include "mlkernel.h"
 #include "mlsolution.h"
 
+// #################################################################################
+// //
+// ## ## //
+// ##                              CONSTANTS & MACROS ## //
+// ## ## //
+// #################################################################################
+// //
 
-// ################################################################################# //
-// ##                                                                             ## //
-// ##                              CONSTANTS & MACROS                             ## //
-// ##                                                                             ## //
-// ################################################################################# //
+// ################################################################################
+// //
+// ## ## //
+// ##                            CLASS MLKernelSwap ## //
+// ## ## //
+// ################################################################################
+// //
 
-// ################################################################################ //
-// ##                                                                            ## //
-// ##                            CLASS MLKernelSwap                              ## //
-// ##                                                                            ## //
-// ################################################################################ //
-
-class MLKernelSwap : public MLKernel
-{
-public:
-    /*!
-     * Create a MLSwapKernelTask instance.
-     */
-    MLKernelSwap(MLProblem &_problem, bool isTotal = false) : MLKernel(_problem, isTotal, MLMI_SWAP) {
-    }
-    /*!
-     * Define kernel launching grid
-     */
-    void
-    defineKernelGrid();
-    /*!
-     * Launch kernel for SWAP local search
-     */
-    void
-    launchKernel();
-    /*!
-     * Apply movement to 'solBase' solution.
-     */
-    void
-    applyMove(MLMove &move);
+class MLKernelSwap : public MLKernel {
+ public:
+  /*!
+   * Create a MLSwapKernelTask instance.
+   */
+  explicit MLKernelSwap(MLProblem& _problem, bool isTotal = false)
+      : MLKernel(_problem, isTotal, MLMI_SWAP) {}
+  /*!
+   * Define kernel launching grid
+   */
+  void defineKernelGrid() override;
+  /*!
+   * Launch kernel for SWAP local search
+   */
+  void launchKernel() override;
+  /*!
+   * Apply movement to 'solBase' solution.
+   */
+  void applyMove(MLMove& move) override;
 };
