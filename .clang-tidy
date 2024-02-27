@@ -5,6 +5,8 @@ Checks: >
     google-*,
     performance-*,
     -cppcoreguidelines-macro-usage,
+    -cppcoreguidelines-avoid-c-arrays,
+    -cppcoreguidelines-pro-bounds-array-to-pointer-decay,
     -cppcoreguidelines-avoid-magic-numbers,
     -google-readability-todo,
     -performance-unnecessary-value-param,

@@ -40,6 +40,11 @@
                     GPU_SQR(sm_coordy[i] - sm_coordy[j]))) + \
       0)  // TODO: PUT THIS VALUE sm_round=0 IN INSTANCE, EYDER... PLEASE!!!!
 
+#define GPU_DIST_COORD_GENERIC(i, j, varx, vary)                              \
+  int(sqrtf(                                                                  \
+          (float)(GPU_SQR(varx[i] - varx[j]) + GPU_SQR(vary[i] - vary[j]))) + \
+      0)  // TODO: PUT THIS VALUE sm_round=0 IN INSTANCE, EYDER... PLEASE!!!!
+
 #define GPU_MOVE_PACKID(i, j, s) ((uint(j) << 18) | (uint(i) << 4) | uint(s))
 #define GPU_MOVE_PACK64(hi, lo) ((ullong(hi) << 32) | ullong(lo))
 

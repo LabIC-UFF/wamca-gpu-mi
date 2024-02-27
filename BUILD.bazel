@@ -20,12 +20,14 @@ cc_library(
             "source/utils.h",
             "source/types.h",
             "source/graph.hpp",
+            "source/thirdparty/UnpackTuple.hpp",
             "source/consts.h",
             ],
 )
 
 cuda_library(
     name = "wamca_cuda",
+    copts = ["-std=c++17", "-Xptxas", "-v", "-D_FORCE_INLINES", "-DLOG_LEVEL=1", "-DGPU_PROFILE"], # "-gencode arch=compute_53,code=sm_53"],
     srcs = ["source/mlk2opt.cu",
             "source/mlkswap.cu",
             "source/mlkoropt.cu",
@@ -55,53 +57,18 @@ cc_binary(
     deps = [":wamca_cuda"],
 )
 
-'''
-cuda_library(
-    name = "mycuda_files",
-    srcs = glob([
-        "source/**/*.cu", 
-    ],
-    exclude = ["source/dvnd.cu"]
-    ),
-    hdrs = glob([
-        "source/**/*.hpp", 
-        "source/**/*.h", 
-        "source/**/*.cuh", 
-    ]),
-)
-
-cc_library(
-    name = "my_headers",
-    hdrs = glob([
-        "source/**/*.hpp", 
-    ]),
-    includes = ["source"]
-)
-
-cc_binary(
-    name = "app_wamca",
-    srcs = glob([
-        "source/**/*.cpp", 
-        "source/**/*.cu", 
-    ], 
-    exclude = ["source/dvnd.cu"]
-    ),
-    copts = ["-nocudainc", "-nocudalib", "--std=c++17", "-allow-unsupported-compiler", "-fopenmp"],
-    deps = [":mycuda_files", ":my_headers", "@cuda//:cuda"],
-)
-'''
 
 load("@hedron_compile_commands//:refresh_compile_commands.bzl", "refresh_compile_commands")
 
 # bazel run :refresh_compile_commands
 refresh_compile_commands(
     name = "refresh_compile_commands",
-    targets = {
+    #targets = {
       # FOR WINDOWS /MT:
       # ???
       # FOR LINUX:
-      "//:app_demo": "--cxxopt=-std=c++20 --define=MY_LONG_SIZE=64 --define=GMP_TYPE_L=\"#define GMP_DEMANDS_UINTD_LONG\" --define=GMP_TYPE_LL=\"/* #undef GMP_DEMANDS_UINTD_LONG_LONG */\" --define=TIME_UNIX_WIN=\"#define HAVE_GETTIMEOFDAY\" ",
-      "//tests:Evaluator_test": "--cxxopt=-std=c++20 --define=MY_LONG_SIZE=64 --define=GMP_TYPE_L=\"#define GMP_DEMANDS_UINTD_LONG\" --define=GMP_TYPE_LL=\"/* #undef GMP_DEMANDS_UINTD_LONG_LONG */\" --define=TIME_UNIX_WIN=\"#define HAVE_GETTIMEOFDAY\" ",
-    },
+      #"//:app_demo": "--cxxopt=-std=c++20 --define=MY_LONG_SIZE=64 --define=GMP_TYPE_L=\"#define GMP_DEMANDS_UINTD_LONG\" --define=GMP_TYPE_LL=\"/* #undef GMP_DEMANDS_UINTD_LONG_LONG */\" --define=TIME_UNIX_WIN=\"#define HAVE_GETTIMEOFDAY\" ",
+      #"//tests:Evaluator_test": "--cxxopt=-std=c++20 --define=MY_LONG_SIZE=64 --define=GMP_TYPE_L=\"#define GMP_DEMANDS_UINTD_LONG\" --define=GMP_TYPE_LL=\"/* #undef GMP_DEMANDS_UINTD_LONG_LONG */\" --define=TIME_UNIX_WIN=\"#define HAVE_GETTIMEOFDAY\" ",
+    #},
 )
 

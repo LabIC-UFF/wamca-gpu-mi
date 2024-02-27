@@ -1,6 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-
 #new_local_repository(
 #   name = "cuda",
 #    path = "/usr/local/cuda/",
@@ -22,7 +21,7 @@ http_archive(
 #    path = "./build/vcpkg_installed/x64-linux",
 #)
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
 # Hedron's Compile Commands Extractor for Bazel
 # https://github.com/hedronvision/bazel-compile-commands-extractor
 http_archive(
@@ -65,6 +64,14 @@ http_archive(
 load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
 
 aspect_bazel_lib_dependencies()
+
+#### testing...
+#new_local_repository(
+#    name = "cuda",
+#    path = "/usr/local/cuda",
+#    build_file = "cuda.BUILD",
+#)
+####
 
 
 http_archive(

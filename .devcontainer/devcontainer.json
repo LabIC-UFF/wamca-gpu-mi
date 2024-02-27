@@ -28,7 +28,7 @@
 					"-log=verbose",
 					"-pretty",
 					"--background-index",
-					"--compile-commands-dir=${workspaceFolder}/build/"
+					"--compile-commands-dir=${workspaceFolder}/"
 				],
 				"editor.formatOnSave": true,
 				"cpplint.cpplintPath": "/usr/local/bin/cpplint",
